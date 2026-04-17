@@ -15,6 +15,7 @@ _override.tf.json
 .idea/
 .vscode/
 .claude/
+*.iml
 
 # Build
 target/

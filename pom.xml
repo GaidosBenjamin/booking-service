@@ -16,7 +16,7 @@
     </subprojects>
 
     <properties>
-        <revision>1.0-SNAPSHOT</revision>
+        <revision>1.0.0-SNAPSHOT</revision>
 
         <spring.boot.version>4.0.4</spring.boot.version>
         <spring.cloud.version>2025.1.1</spring.cloud.version>
