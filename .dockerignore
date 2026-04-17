@@ -1,0 +1,22 @@
+# Build output
+**/target/
+**/*.jar
+**/*.war
+
+# IDE and editor files
+.idea/
+*.iml
+*.iws
+.vscode/
+
+# Terraform
+booking-deployment/
+
+# Git
+.git/
+.gitignore
+
+# Misc
+*.md
+*.log
+setup-ssl.sh
