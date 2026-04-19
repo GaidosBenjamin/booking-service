@@ -1,4 +1,3 @@
-create extension if not exists "uuid-ossp";
 -- 1. organization (root tenant table)
 create table organization
 (
