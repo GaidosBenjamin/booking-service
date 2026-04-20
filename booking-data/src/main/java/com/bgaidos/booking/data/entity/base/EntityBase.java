@@ -1,4 +1,4 @@
-package com.bgaidos.booking.data;
+package com.bgaidos.booking.data.entity.base;
 
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.TimeBasedEpochGenerator;
@@ -7,6 +7,7 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 
 import java.util.UUID;
 
@@ -40,6 +41,6 @@ public abstract class EntityBase {
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Hibernate.getClass(this).hashCode();
     }
 }

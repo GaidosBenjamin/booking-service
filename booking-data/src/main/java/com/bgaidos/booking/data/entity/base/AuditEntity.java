@@ -1,4 +1,4 @@
-package com.bgaidos.booking.data;
+package com.bgaidos.booking.data.entity.base;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -10,7 +10,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @MappedSuperclass
@@ -20,13 +20,13 @@ import java.util.UUID;
 public abstract class AuditEntity extends EntityBase {
 
     @CreatedDate
-    private OffsetDateTime createdOn;
+    private Instant createdOn;
 
     @CreatedBy
     private UUID createdBy;
 
     @LastModifiedDate
-    private OffsetDateTime modifiedOn;
+    private Instant modifiedOn;
 
     @LastModifiedBy
     private UUID modifiedBy;

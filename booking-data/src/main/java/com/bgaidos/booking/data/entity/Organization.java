@@ -1,5 +1,6 @@
-package com.bgaidos.booking.data;
+package com.bgaidos.booking.data.entity;
 
+import com.bgaidos.booking.data.entity.base.AuditEntity;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,5 +10,6 @@ import lombok.Setter;
 @Setter
 public class Organization extends AuditEntity {
 
+    private String slug;
     private String name;
 }

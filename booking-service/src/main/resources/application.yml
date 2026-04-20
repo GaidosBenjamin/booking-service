@@ -1,3 +1,49 @@
 spring:
   application:
     name: booking-service
+  datasource:
+    url: ${DB_URL}
+    username: ${USER}
+    password: ${PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: ${SMTP_USER}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  threads:
+    virtual:
+      enabled: true
+
+app:
+  auth:
+    jwt:
+      secret: ${JWT_SECRET}
+      ttl: PT60M
+    reset:
+      ttl: PT30M
+    verification:
+      ttl: PT15M
+    refresh:
+      ttl: P30D
+  mail:
+    from: ${MAIL_FROM:no-reply@bbso.dev}
+    brand-name: ${MAIL_BRAND:BBSO Kids}
+
+management:
+  health:
+    mail:
+      enabled: false
+
+logging:
+  level:
+    com.bgaidos: ${BGAIDOS_LOG_LEVEL:DEBUG}

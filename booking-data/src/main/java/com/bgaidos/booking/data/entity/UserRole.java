@@ -1,5 +1,6 @@
-package com.bgaidos.booking.data;
+package com.bgaidos.booking.data.entity;
 
+import com.bgaidos.booking.data.entity.base.AuditEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
