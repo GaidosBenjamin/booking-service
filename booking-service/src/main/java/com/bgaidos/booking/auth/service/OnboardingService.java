@@ -38,8 +38,7 @@ public class OnboardingService {
         var defaultRole = new Role();
         defaultRole.setTenantId(organization.getId());
         defaultRole.setName(DEFAULT_ROLE_NAME);
-        //TODO setup list of default permissions here
-        defaultRole.setPermissions(List.of());
+        defaultRole.setPermissions(List.of("CAMPER_READ", "CAMPER_WRITE"));
         roleRepository.save(defaultRole);
 
         return new OnboardingResponse(organization.getId(), organization.getSlug());

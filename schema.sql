@@ -163,3 +163,32 @@ create table refresh_tokens
 create unique index idx_rt_token_hash on refresh_tokens (token_hash);
 create index idx_rt_user on refresh_tokens (user_id);
 create index idx_rt_family on refresh_tokens (family_id);
+
+-- 9. campers
+create type camper_status as enum ('NEEDS_BED', 'NEEDS_PAYMENT', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED');
+
+create table campers
+(
+    id                   uuid primary key       default uuidv7(),
+    tenant_id            uuid          not null
+        references organization (id),
+    parent_user_id       uuid          not null
+        references users (id),
+
+    first_name           text          not null,
+    last_name            text          not null,
+    date_of_birth        date          not null,
+    grade                text          not null,
+    gender               text          not null,
+    special_requirements text,
+
+    status               camper_status not null default 'NEEDS_BED',
+
+    created_on           timestamptz   not null,
+    created_by           uuid,
+    modified_on          timestamptz,
+    modified_by          uuid
+);
+
+create index idx_campers_parent on campers (parent_user_id);
+create index idx_campers_tenant on campers (tenant_id);

@@ -1,4 +1,4 @@
-package com.bgaidos.booking.config;
+package com.bgaidos.booking.auth.config;
 
 import com.bgaidos.booking.auth.mail.AuthMailer;
 import com.bgaidos.booking.auth.mail.BrevoAuthMailer;

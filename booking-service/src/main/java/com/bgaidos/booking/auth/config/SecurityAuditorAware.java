@@ -1,4 +1,4 @@
-package com.bgaidos.booking.config;
+package com.bgaidos.booking.auth.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;

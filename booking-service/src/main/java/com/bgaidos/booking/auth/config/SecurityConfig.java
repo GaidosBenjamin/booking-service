@@ -1,4 +1,4 @@
-package com.bgaidos.booking.config;
+package com.bgaidos.booking.auth.config;
 
 import com.bgaidos.booking.auth.security.TenantAuthenticationProvider;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,6 +27,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private static final String[] PUBLIC_PATHS = {
