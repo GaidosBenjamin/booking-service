@@ -37,7 +37,8 @@ jobs:
       TF_VAR_github_repo: booking-service
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v6
