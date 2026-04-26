@@ -1,11 +1,11 @@
 package com.bgaidos.booking.auth.service;
 
 import com.bgaidos.booking.auth.service.event.VerificationCodeIssuedEvent;
-import com.bgaidos.booking.auth.util.AuthTokens;
-import com.bgaidos.booking.data.entity.EmailVerificationToken;
-import com.bgaidos.booking.data.entity.User;
-import com.bgaidos.booking.data.repo.EmailVerificationTokenRepository;
-import com.bgaidos.booking.exception.BadRequestException;
+import com.bgaidos.booking.util.AuthTokens;
+import com.bgaidos.booking.entity.EmailVerificationToken;
+import com.bgaidos.booking.entity.User;
+import com.bgaidos.booking.repo.EmailVerificationTokenRepository;
+import com.bgaidos.booking.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +43,7 @@ public class EmailVerificationService {
         tokenRepository.save(token);
 
         eventPublisher.publishEvent(new VerificationCodeIssuedEvent(user.getEmail(), code, ttl));
+        log.info("issued email verification code for user={}", user.getId());
     }
 
     public void resend(String organizationSlug, String email) {
@@ -75,12 +76,16 @@ public class EmailVerificationService {
             .findActiveByUserIdAndTokenHash(user.getId(), AuthTokens.hash(code))
             .orElseThrow(() -> new BadRequestException("invalid or expired code"));
 
+        assertNotExpired(token);
         var now = Instant.now();
-        if (token.getExpiresAt().isBefore(now)) {
-            throw new BadRequestException("invalid or expired code");
-        }
-
         user.setEmailVerified(true);
         token.setConsumedAt(now);
+        log.info("verified email for user={}", user.getId());
+    }
+
+    private static void assertNotExpired(EmailVerificationToken token) {
+        if (token.getExpiresAt().isBefore(Instant.now())) {
+            throw new BadRequestException("invalid or expired code");
+        }
     }
 }

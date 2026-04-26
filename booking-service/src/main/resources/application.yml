@@ -3,8 +3,8 @@ spring:
     name: booking-service
   datasource:
     url: ${DB_URL}
-    username: ${USER}
-    password: ${PASSWORD}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -25,6 +25,8 @@ spring:
       enabled: true
 
 app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
   auth:
     jwt:
       secret: ${JWT_SECRET}
@@ -38,6 +40,14 @@ app:
   mail:
     from: ${MAIL_FROM:no-reply@bbso.dev}
     brand-name: ${MAIL_BRAND:BBSO Kids}
+  room-hold:
+    ttl: PT15M
+
+stripe:
+  api-key: ${STRIPE_API_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/booking/success}
+  cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/booking/failed}
 
 management:
   health:

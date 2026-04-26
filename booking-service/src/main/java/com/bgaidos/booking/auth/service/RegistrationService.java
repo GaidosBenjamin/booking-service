@@ -1,24 +1,26 @@
 package com.bgaidos.booking.auth.service;
 
 import com.bgaidos.booking.api.auth.RegisterRequest;
-import com.bgaidos.booking.auth.util.AuthNormalizers;
-import com.bgaidos.booking.data.entity.Role;
-import com.bgaidos.booking.data.entity.User;
-import com.bgaidos.booking.data.entity.UserProfile;
-import com.bgaidos.booking.data.entity.UserRole;
-import com.bgaidos.booking.data.repo.RoleRepository;
-import com.bgaidos.booking.data.repo.UserProfileRepository;
-import com.bgaidos.booking.data.repo.UserRepository;
-import com.bgaidos.booking.data.repo.UserRoleRepository;
-import com.bgaidos.booking.exception.BadRequestException;
-import com.bgaidos.booking.exception.NotFoundException;
+import com.bgaidos.booking.util.AuthNormalizers;
+import com.bgaidos.booking.entity.Role;
+import com.bgaidos.booking.entity.User;
+import com.bgaidos.booking.entity.UserProfile;
+import com.bgaidos.booking.entity.UserRole;
+import com.bgaidos.booking.repo.RoleRepository;
+import com.bgaidos.booking.repo.UserProfileRepository;
+import com.bgaidos.booking.repo.UserRepository;
+import com.bgaidos.booking.repo.UserRoleRepository;
+import com.bgaidos.booking.common.exception.BadRequestException;
+import com.bgaidos.booking.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -37,9 +39,12 @@ public class RegistrationService {
             .orElseThrow(() -> new NotFoundException("organization not found: " + request.organizationSlug()));
 
         var email = AuthNormalizers.normalize(request.email());
+        log.info("registering user in tenant={}", organization.getId());
         if (userRepository.existsByTenantIdAndEmailIgnoreCase(organization.getId(), email)) {
             throw new BadRequestException("email already registered for this organization");
         }
+
+        var isFirstUser = userRepository.countByTenantId(organization.getId()) == 0;
 
         var user = new User();
         user.setTenantId(organization.getId());
@@ -53,13 +58,22 @@ public class RegistrationService {
         profile.setTenantId(organization.getId());
         profile.setFirstName(request.firstName().trim());
         profile.setLastName(request.lastName().trim());
+        profile.setPhone(request.phone().trim());
         userProfileRepository.save(profile);
 
-        roleRepository
-            .findByTenantIdAndName(organization.getId(), OnboardingService.DEFAULT_ROLE_NAME)
-            .ifPresent(role -> attachRole(user, role, organization.getId()));
+        attachRoleByName(user, organization.getId(), OnboardingService.DEFAULT_ROLE_NAME);
+        if (isFirstUser) {
+            log.info("first user of tenant={} — granting ADMIN role to user={}", organization.getId(), user.getId());
+            attachRoleByName(user, organization.getId(), OnboardingService.ADMIN_ROLE_NAME);
+        }
 
         emailVerificationService.issue(user);
+        log.info("registered user={} tenant={} firstUser={}", user.getId(), organization.getId(), isFirstUser);
+    }
+
+    private void attachRoleByName(User user, UUID tenantId, String roleName) {
+        roleRepository.findByTenantIdAndName(tenantId, roleName)
+            .ifPresent(role -> attachRole(user, role, tenantId));
     }
 
     private void attachRole(User user, Role role, UUID tenantId) {

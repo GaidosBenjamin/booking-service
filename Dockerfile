@@ -7,7 +7,10 @@ COPY booking-api/pom.xml booking-api/
 COPY booking-data/pom.xml booking-data/
 COPY booking-service/pom.xml booking-service/
 
-RUN yum install -y maven && yum clean all
+RUN yum install -y tar gzip && yum clean all && \
+    curl -fsSL https://dlcdn.apache.org/maven/maven-4/4.0.0-rc-5/binaries/apache-maven-4.0.0-rc-5-bin.tar.gz \
+    | tar -xz -C /opt && \
+    ln -s /opt/apache-maven-4.0.0-rc-5/bin/mvn /usr/local/bin/mvn
 
 RUN mvn dependency:go-offline -pl booking-service -am -q
 
@@ -17,9 +20,10 @@ COPY booking-service/src booking-service/src
 
 RUN mvn clean package -pl booking-service -am -DskipTests -q
 
-FROM amazoncorretto:21-headless
+FROM public.ecr.aws/amazoncorretto/amazoncorretto:26-al2023-headless
 
-RUN groupadd --system appgroup && useradd --system --gid appgroup appuser
+RUN yum install -y shadow-utils && yum clean all && \
+    groupadd --system appgroup && useradd --system --gid appgroup appuser
 
 WORKDIR /app
 

@@ -1,10 +1,10 @@
 package com.bgaidos.booking.auth.service;
 
-import com.bgaidos.booking.auth.util.AuthNormalizers;
-import com.bgaidos.booking.data.entity.Organization;
-import com.bgaidos.booking.data.entity.User;
-import com.bgaidos.booking.data.repo.OrganizationRepository;
-import com.bgaidos.booking.data.repo.UserRepository;
+import com.bgaidos.booking.util.AuthNormalizers;
+import com.bgaidos.booking.entity.Organization;
+import com.bgaidos.booking.entity.User;
+import com.bgaidos.booking.repo.OrganizationRepository;
+import com.bgaidos.booking.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

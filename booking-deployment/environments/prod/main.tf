@@ -4,6 +4,15 @@ module "s3-terraform-state" {
   source = "../../modules/s3-terraform-state"
 }
 
+# ─── Module: GitHub Actions IAM ──────────
+
+module "iam-github-actions" {
+  source = "../../modules/iam-github-actions"
+
+  github_org  = var.github_org
+  github_repo = var.github_repo
+}
+
 # ─── Module: Database ────────────────────
 
 module "lightsail-database" {
@@ -17,52 +26,80 @@ module "lightsail-database" {
   db_publicly_accessible = true
 }
 
+# ─── Module: SSL Certificate ─────────────
+
+module "lightsail-certificate" {
+  source = "../../modules/lightsail-certificate"
+
+  certificate_name = "${var.project_name}-cert"
+  domain           = "bbso.dev"
+  subdomain        = "api"
+  aws_region       = var.aws_region
+}
+
 # ─── Module: Container Service & Registry ─
 
 module "lightsail-container" {
   source = "../../modules/lightsail-container"
 
-  service_name = "${var.project_name}-service"
-  power        = "micro" #1GB Ram, review GraalVM option with 500mb memory
-  scale        = 1
-  aws_region   = var.aws_region
+  service_name     = "${var.project_name}-container"
+  power            = "micro" #1GB Ram, review GraalVM option with 500mb memory
+  scale            = 1
+  aws_region       = var.aws_region
+  certificate_name = module.lightsail-certificate.certificate_name
+  custom_domain    = module.lightsail-certificate.fqdn
 }
 
 # ─── Module: Compute (Deployment) ────────
 
-# module "lightsail-compute" {
-#   source = "../../modules/lightsail-compute"
-#
-#   service_name    = module.lightsail-container.service_name
-#   project_name    = var.project_name
-#   container_image = ":${module.lightsail-container.service_name}/booking-service:${var.container_image_tag}"
-#   container_port  = 8080
-#
-#   environment = {
-#     SPRING_DATASOURCE_URL      = "jdbc:postgresql://${module.lightsail-database.db_endpoint}:${module.lightsail-database.db_port}/${module.lightsail-database.db_name}?currentSchema=${module.lightsail-database.db_schema}"
-#     SPRING_DATASOURCE_USERNAME = module.lightsail-database.db_username
-#     SPRING_DATASOURCE_PASSWORD = module.lightsail-database.db_password
-#     # BUCKET_NAME                = module.lightsail-storage.bucket_name
-#     # BUCKET_ACCESS_KEY          = module.lightsail-storage.bucket_access_key_id
-#     # BUCKET_SECRET_KEY          = module.lightsail-storage.bucket_secret_access_key
-#   }
-# }
-#
-# # ─── Module: Storage ─────────────────────
-#
+module "lightsail-compute" {
+  source = "../../modules/lightsail-compute"
+
+  container_service_name = module.lightsail-container.service_name
+  project_name           = var.project_name
+  container_image        = ":${module.lightsail-container.service_name}.booking-service.${var.container_image_tag}"
+  container_port         = 8080
+
+  environment = {
+    DB_URL      = "jdbc:postgresql://${module.lightsail-database.db_endpoint}:${module.lightsail-database.db_port}/${module.lightsail-database.db_name}?currentSchema=${module.lightsail-database.db_schema}"
+    DB_USER     = module.lightsail-database.db_username
+    DB_PASSWORD = module.lightsail-database.db_password
+
+    SMTP_USER     = var.smtp_user
+    SMTP_PASSWORD = var.smtp_password
+
+    JWT_SECRET = var.jwt_secret
+
+    CORS_ALLOWED_ORIGINS = var.cors_allowed_origins
+
+    STRIPE_API_KEY        = var.stripe_api_key
+    STRIPE_WEBHOOK_SECRET = var.stripe_webhook_secret
+    STRIPE_SUCCESS_URL    = var.stripe_success_url
+    STRIPE_CANCEL_URL     = var.stripe_cancel_url
+
+    MAIL_FROM  = var.mail_from
+    MAIL_BRAND = var.mail_brand
+
+    BGAIDOS_LOG_LEVEL = var.log_level
+  }
+}
+
+# ─── Module: Storage ─────────────────────
+
 # module "lightsail-storage" {
 #   source = "../../modules/lightsail-storage"
 #
 #   project_name           = var.project_name
 #   container_service_name = module.lightsail-compute.container_service_name
 # }
-#
-# # ─── Module: DNS ─────────────────────────
-#
-# module "cloudflare-dns" {
-#   source = "../../modules/cloudflare-dns"
-#
-#   domain                = "bbso.dev"
-#   subdomain             = "api"
-#   container_service_url = module.lightsail-compute.container_service_url
-# }
+
+# ─── Module: DNS ─────────────────────────
+
+module "cloudflare-dns" {
+  source = "../../modules/cloudflare-dns"
+
+  domain                = "bbso.dev"
+  subdomain             = "api"
+  container_service_url = module.lightsail-container.service_url
+  proxied               = false
+}

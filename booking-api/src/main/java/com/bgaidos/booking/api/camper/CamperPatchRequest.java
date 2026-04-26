@@ -1,5 +1,7 @@
 package com.bgaidos.booking.api.camper;
 
+import jakarta.validation.constraints.Pattern;
+
 import java.time.LocalDate;
 
 public record CamperPatchRequest(
@@ -7,7 +9,7 @@ public record CamperPatchRequest(
     String lastName,
     LocalDate dateOfBirth,
     String grade,
-    String gender,
+    @Pattern(regexp = "male|female") String gender,
     String specialRequirements
 ) {
 }

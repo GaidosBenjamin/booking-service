@@ -2,10 +2,12 @@ package com.bgaidos.booking.auth.service;
 
 import com.bgaidos.booking.api.auth.AuthTokenResponse;
 import com.bgaidos.booking.api.auth.RefreshTokenRequest;
-import com.bgaidos.booking.auth.security.model.AuthUser;
+import com.bgaidos.booking.auth.service.model.AuthUser;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SessionService {
@@ -21,6 +23,8 @@ public class SessionService {
         var authUser = new AuthUser(user, authorities);
         var issued = jwtService.issue(authUser);
 
+        log.info("refresh success user={} tenant={}", user.getId(), user.getTenantId());
+
         return new AuthTokenResponse(
             issued.value(),
             "Bearer",
@@ -33,5 +37,6 @@ public class SessionService {
 
     public void logout(RefreshTokenRequest request) {
         refreshTokenService.revoke(request.refreshToken());
+        log.info("logout processed");
     }
 }

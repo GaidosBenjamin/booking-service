@@ -29,27 +29,27 @@ public class CamperController {
     private final CamperService camperService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('CAMPER_READ')")
+    @PreAuthorize("hasAuthority('campers:read')")
     public List<CamperResponse> list() {
         return camperService.list();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('CAMPER_WRITE')")
+    @PreAuthorize("hasAuthority('campers:write')")
     public CamperResponse create(@Valid @RequestBody CamperCreateRequest request) {
         return camperService.create(request);
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAuthority('CAMPER_WRITE')")
+    @PreAuthorize("hasAuthority('campers:write')")
     public CamperResponse patch(@PathVariable UUID id, @Valid @RequestBody CamperPatchRequest request) {
         return camperService.patch(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('CAMPER_WRITE')")
+    @PreAuthorize("hasAuthority('campers:write')")
     public void delete(@PathVariable UUID id) {
         camperService.delete(id);
     }

@@ -1,7 +1,8 @@
 package com.bgaidos.booking.auth.service;
 
-import com.bgaidos.booking.auth.security.model.AuthUser;
+import com.bgaidos.booking.auth.service.model.AuthUser;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JwtService {
@@ -42,6 +44,9 @@ public class JwtService {
 
         var token = jwtEncoder.encode(JwtEncoderParameters.from(
             JwsHeader.with(MacAlgorithm.HS256).build(), claims)).getTokenValue();
+
+        log.debug("issued access token user={} tenant={} authorities={}",
+            authUser.getUserId(), authUser.getTenantId(), authorities.size());
 
         return new IssuedToken(token, ttl.toSeconds());
     }

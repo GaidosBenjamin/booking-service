@@ -9,8 +9,8 @@ data "cloudflare_zone" "main" {
 resource "cloudflare_record" "app" {
   zone_id = data.cloudflare_zone.main.id
   name    = var.subdomain
-  value   = replace(var.container_service_url, "https://", "")
+  content = trimsuffix(replace(var.container_service_url, "https://", ""), "/")
   type    = "CNAME"
-  ttl     = 1       # Auto TTL (required when proxied = true)
+  ttl     = var.proxied ? 1 : 300
   proxied = var.proxied
 }

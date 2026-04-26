@@ -3,7 +3,8 @@ package com.bgaidos.booking.camper;
 import com.bgaidos.booking.api.camper.CamperCreateRequest;
 import com.bgaidos.booking.api.camper.CamperPatchRequest;
 import com.bgaidos.booking.api.camper.CamperResponse;
-import com.bgaidos.booking.data.entity.Camper;
+import com.bgaidos.booking.api.camper.RoomHoldSummary;
+import com.bgaidos.booking.entity.Camper;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -26,7 +27,20 @@ public interface CamperMapper {
     @Mapping(target = "modifiedBy", ignore = true)
     Camper toEntity(CamperCreateRequest request);
 
-    CamperResponse toResponse(Camper camper);
+    default CamperResponse toResponse(Camper camper, String status, boolean roomsAvailable, RoomHoldSummary roomHold) {
+        return new CamperResponse(
+            camper.getId(),
+            camper.getFirstName(),
+            camper.getLastName(),
+            camper.getDateOfBirth(),
+            camper.getGrade(),
+            camper.getGender(),
+            camper.getSpecialRequirements(),
+            status,
+            roomsAvailable,
+            roomHold,
+            camper.getCreatedOn());
+    }
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)

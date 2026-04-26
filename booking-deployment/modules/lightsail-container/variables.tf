@@ -20,3 +20,15 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "certificate_name" {
+  description = "Lightsail certificate name to attach for a custom domain (null disables custom domain)"
+  type        = string
+  default     = null
+}
+
+variable "custom_domain" {
+  description = "Custom domain to associate with the service (e.g. api.bbso.dev)"
+  type        = string
+  default     = null
+}

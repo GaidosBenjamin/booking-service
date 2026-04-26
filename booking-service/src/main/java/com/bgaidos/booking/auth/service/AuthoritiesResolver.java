@@ -1,6 +1,6 @@
 package com.bgaidos.booking.auth.service;
 
-import com.bgaidos.booking.data.repo.UserRoleRepository;
+import com.bgaidos.booking.repo.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -13,6 +13,8 @@ public record CamperResponse(
     String gender,
     String specialRequirements,
     String status,
+    boolean roomsAvailable,
+    RoomHoldSummary roomHold,
     Instant createdOn
 ) {
 }

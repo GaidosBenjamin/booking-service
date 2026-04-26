@@ -3,10 +3,10 @@ package com.bgaidos.booking.auth.service;
 import com.bgaidos.booking.api.auth.ForgotPasswordRequest;
 import com.bgaidos.booking.api.auth.ResetPasswordRequest;
 import com.bgaidos.booking.auth.service.event.PasswordResetCodeIssuedEvent;
-import com.bgaidos.booking.auth.util.AuthTokens;
-import com.bgaidos.booking.data.entity.PasswordResetToken;
-import com.bgaidos.booking.data.repo.PasswordResetTokenRepository;
-import com.bgaidos.booking.exception.BadRequestException;
+import com.bgaidos.booking.util.AuthTokens;
+import com.bgaidos.booking.entity.PasswordResetToken;
+import com.bgaidos.booking.repo.PasswordResetTokenRepository;
+import com.bgaidos.booking.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +58,7 @@ public class PasswordResetService {
         tokenRepository.save(token);
 
         eventPublisher.publishEvent(new PasswordResetCodeIssuedEvent(user.getEmail(), code, ttl));
+        log.info("issued password reset code for user={}", user.getId());
     }
 
     public void resetPassword(ResetPasswordRequest request) {
@@ -71,14 +72,17 @@ public class PasswordResetService {
             .findActiveByUserIdAndTokenHash(user.getId(), AuthTokens.hash(request.code()))
             .orElseThrow(() -> new BadRequestException("invalid or expired code"));
 
+        assertNotExpired(token);
         var now = Instant.now();
-        if (token.getExpiresAt().isBefore(now)) {
-            throw new BadRequestException("invalid or expired code");
-        }
-
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         token.setConsumedAt(now);
-
         refreshTokenService.revokeAllForUser(user.getId());
+        log.info("password reset completed for user={}", user.getId());
+    }
+
+    private static void assertNotExpired(PasswordResetToken token) {
+        if (token.getExpiresAt().isBefore(Instant.now())) {
+            throw new BadRequestException("invalid or expired code");
+        }
     }
 }
