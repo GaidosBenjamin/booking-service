@@ -21,10 +21,10 @@ resource "aws_lightsail_container_service_deployment_version" "app" {
     health_check {
       path                = "/actuator/health"
       success_codes       = "200"
-      interval_seconds    = 10
-      timeout_seconds     = 8
+      interval_seconds    = 60   # Wait 60 seconds between pings
+      timeout_seconds     = 20   # Give the ping 20s to respond
       healthy_threshold   = 2
-      unhealthy_threshold = 10
+      unhealthy_threshold = 5    # 5 fails * 60s = 5 minutes of total startup time allowed
     }
   }
 }

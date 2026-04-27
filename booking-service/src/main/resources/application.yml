@@ -23,6 +23,8 @@ spring:
   threads:
     virtual:
       enabled: true
+  main:
+    lazy-initialization: false
 
 app:
   cors:
