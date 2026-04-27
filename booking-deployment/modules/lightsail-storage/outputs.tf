@@ -4,7 +4,7 @@ output "bucket_name" {
 }
 
 output "bucket_url" {
-  description = "Lightsail bucket URL"
+  description = "Lightsail bucket base URL — append /<key> to get the public URL of any object"
   value       = aws_lightsail_bucket.images.url
 }
 

@@ -30,5 +30,12 @@ provider "aws" {
   allowed_account_ids = ["218014314930"]
 }
 
+# us-east-1 alias required by ACM certificates attached to CloudFront
+provider "aws" {
+  alias               = "us_east_1"
+  region              = "us-east-1"
+  allowed_account_ids = ["218014314930"]
+}
+
 # Cloudflare provider reads CLOUDFLARE_API_TOKEN from environment
 provider "cloudflare" {}

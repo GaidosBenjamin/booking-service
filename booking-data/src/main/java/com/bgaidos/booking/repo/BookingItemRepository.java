@@ -12,7 +12,13 @@ import java.util.UUID;
 
 public interface BookingItemRepository extends JpaRepository<BookingItem, UUID> {
 
-    @Query("select i from BookingItem i where i.booking.id = :bookingId")
+    @Query("""
+        select i from BookingItem i
+        join fetch i.tier
+        join fetch i.camper
+        join fetch i.room
+        where i.booking.id = :bookingId
+        """)
     List<BookingItem> findAllByBookingId(@Param("bookingId") UUID bookingId);
 
     @Query("""
@@ -21,6 +27,16 @@ public interface BookingItemRepository extends JpaRepository<BookingItem, UUID> 
           and i.booking.status = :status
         """)
     long countByCamperIdAndBookingStatus(@Param("camperId") UUID camperId, @Param("status") PaymentStatus status);
+
+    @Query("""
+        select distinct i.camper.id from BookingItem i
+        where i.camper.id in :camperIds
+          and i.booking.status in :statuses
+        """)
+    List<UUID> findAlreadyBookedCamperIds(
+        @Param("camperIds") List<UUID> camperIds,
+        @Param("statuses") List<PaymentStatus> statuses
+    );
 
     @Modifying
     @Query(

@@ -11,6 +11,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -57,6 +58,14 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleOAuth2Authentication(OAuth2AuthenticationException ex) {
         log.debug("oauth2 authentication failed: {}", ex.getMessage());
         return problem(HttpStatus.UNAUTHORIZED, "invalid bearer token");
+    }
+
+    // Expected: required query parameter missing
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingParam(MissingServletRequestParameterException ex) {
+        log.debug("missing request parameter '{}': {}", ex.getParameterName(), ex.getMessage());
+        var detail = "required parameter '%s' is missing".formatted(ex.getParameterName());
+        return problem(HttpStatus.BAD_REQUEST, detail);
     }
 
     // Expected: wrong type in path/query param

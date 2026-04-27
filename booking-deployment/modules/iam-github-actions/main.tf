@@ -5,8 +5,8 @@ data "aws_caller_identity" "current" {}
 resource "aws_iam_openid_connect_provider" "github" {
   count = var.create_oidc_provider ? 1 : 0
 
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
+  url            = "https://token.actions.githubusercontent.com"
+  client_id_list = ["sts.amazonaws.com"]
   # AWS auto-validates GitHub's OIDC thumbprint; one entry is required by the resource schema.
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 }
@@ -35,7 +35,7 @@ resource "aws_iam_role" "github_actions" {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         }
         StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${var.github_repo}:*"
+          "token.actions.githubusercontent.com:sub" = [for repo in var.github_repos : "repo:${var.github_org}/${repo}:*"]
         }
       }
     }]

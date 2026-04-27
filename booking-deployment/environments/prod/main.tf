@@ -9,8 +9,8 @@ module "s3-terraform-state" {
 module "iam-github-actions" {
   source = "../../modules/iam-github-actions"
 
-  github_org  = var.github_org
-  github_repo = var.github_repo
+  github_org   = var.github_org
+  github_repos = ["booking-service", "booking-web"]
 }
 
 # ─── Module: Database ────────────────────
@@ -86,12 +86,11 @@ module "lightsail-compute" {
 
 # ─── Module: Storage ─────────────────────
 
-# module "lightsail-storage" {
-#   source = "../../modules/lightsail-storage"
-#
-#   project_name           = var.project_name
-#   container_service_name = module.lightsail-compute.container_service_name
-# }
+module "lightsail-storage" {
+  source = "../../modules/lightsail-storage"
+
+  project_name = var.project_name
+}
 
 # ─── Module: DNS ─────────────────────────
 

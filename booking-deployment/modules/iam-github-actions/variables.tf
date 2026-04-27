@@ -3,9 +3,9 @@ variable "github_org" {
   type        = string
 }
 
-variable "github_repo" {
-  description = "GitHub repository name (without the org prefix)"
-  type        = string
+variable "github_repos" {
+  description = "GitHub repository names (without the org prefix) that may assume this role"
+  type        = list(string)
 }
 
 variable "create_oidc_provider" {

@@ -438,3 +438,15 @@ create table members
 );
 
 create index idx_members_tenant on members (tenant_id);
+
+alter table "booking-service".buildings
+    drop column description;
+
+alter table "booking-service".buildings
+    drop column highlights;
+
+alter table "booking-service".buildings
+    add description jsonb;
+
+alter table "booking-service".buildings
+    add highlights jsonb;

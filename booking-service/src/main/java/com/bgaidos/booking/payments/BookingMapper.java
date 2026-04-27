@@ -10,11 +10,26 @@ import java.time.Instant;
 public class BookingMapper {
 
     public BookingItemResponse toItemResponse(BookingItem item, Instant holdExpiresAt) {
+        var tier = item.getTier();
+        var camper = item.getCamper();
         return new BookingItemResponse(
-            item.getCamper().getId(),
-            item.getTier().getId(),
             item.getRoom().getId(),
             item.getPrice(),
-            holdExpiresAt);
+            holdExpiresAt,
+            new BookingItemResponse.TierSummary(
+                tier.getId(),
+                tier.getName(),
+                tier.getCurrency(),
+                tier.getBasePrice(),
+                tier.getDiscountPrice()),
+            new BookingItemResponse.CamperSummary(
+                camper.getId(),
+                camper.getFirstName(),
+                camper.getLastName(),
+                camper.getDateOfBirth(),
+                camper.getGrade(),
+                camper.getGender()
+            )
+        );
     }
 }

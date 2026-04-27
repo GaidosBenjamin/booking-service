@@ -1,6 +1,7 @@
 package com.bgaidos.booking.entity;
 
 import com.bgaidos.booking.entity.base.AuditEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -27,10 +29,14 @@ public class Building extends AuditEntity {
     private Tier tier;
 
     private String name;
-    private String description;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    private List<String> highlights;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, String> description;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, List<HighlightItem>> highlights;
 
     private String imageUrl;
 }

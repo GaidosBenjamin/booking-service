@@ -69,10 +69,13 @@ public class BookingService {
         var readTx = new TransactionTemplate(txManager);
         readTx.setReadOnly(true);
         List<PreparedItem> prepared = Objects.requireNonNull(readTx.execute(status -> {
-            if (bookingRepository.countByStatus(PaymentStatus.PENDING) > 0) {
-                throw new BadRequestException("complete or cancel your existing pending booking first");
-            }
             var holds = resolveHolds(request);
+            var camperIds = holds.stream().map(h -> h.getCamper().getId()).toList();
+            var alreadyBooked = bookingItemRepository.findAlreadyBookedCamperIds(
+                camperIds, List.of(PaymentStatus.PENDING, PaymentStatus.SUCCEEDED));
+            if (!alreadyBooked.isEmpty()) {
+                throw new BadRequestException("camper(s) already have an active booking: " + alreadyBooked);
+            }
             var isMember = isMember(holds);
             var tenantId = currentUser.tenantId();
             return holds.stream().map(hold -> {
@@ -159,7 +162,7 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingResponse> list() {
-        return bookingRepository.findAllForCurrentUser().stream()
+        return bookingRepository.findAllForCurrentUser(List.of(PaymentStatus.PENDING, PaymentStatus.SUCCEEDED)).stream()
             .map(b -> toResponse(b, null))
             .toList();
     }
@@ -223,6 +226,7 @@ public class BookingService {
             booking.getCurrency(),
             booking.getStatus().name(),
             checkoutUrl,
+            booking.getExpiresAt(),
             items);
     }
 

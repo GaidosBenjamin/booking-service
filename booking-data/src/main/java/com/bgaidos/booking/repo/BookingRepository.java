@@ -17,8 +17,9 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
         select b from Booking b
         where b.parentUser.id = :#{currentUser.userId()}
           and b.tenantId = :#{currentUser.tenantId()}
+          and b.status in :statuses
         """)
-    List<Booking> findAllForCurrentUser();
+    List<Booking> findAllForCurrentUser(@Param("statuses") List<PaymentStatus> statuses);
 
     @Query("""
         select b from Booking b
@@ -38,6 +39,14 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
           and b.status = :status
         """)
     long countByStatus(@Param("status") PaymentStatus status);
+
+    @Modifying
+    @Query("""
+        update Booking b set b.status = 'CANCELED'
+        where b.status = 'PENDING'
+          and b.expiresAt < current_timestamp
+        """)
+    int cancelExpiredPending();
 
     @Modifying
     @Query("""

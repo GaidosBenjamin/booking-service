@@ -13,7 +13,6 @@ variable "project_name" {
 variable "container_image_tag" {
   description = "Docker image tag to deploy (e.g. 'latest' or a git commit SHA)"
   type        = string
-  default     = "2"
 }
 
 variable "jwt_secret" {
@@ -80,10 +79,5 @@ variable "log_level" {
 
 variable "github_org" {
   description = "GitHub organisation or username that owns the repository"
-  type        = string
-}
-
-variable "github_repo" {
-  description = "GitHub repository name (without the org prefix)"
   type        = string
 }
