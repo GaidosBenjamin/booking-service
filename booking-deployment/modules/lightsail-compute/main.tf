@@ -21,10 +21,10 @@ resource "aws_lightsail_container_service_deployment_version" "app" {
     health_check {
       path                = "/actuator/health"
       success_codes       = "200"
-      interval_seconds    = 60
-      timeout_seconds     = 20
+      interval_seconds    = 10
+      timeout_seconds     = 8
       healthy_threshold   = 2
-      unhealthy_threshold = 5
+      unhealthy_threshold = 10
     }
   }
 }
