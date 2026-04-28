@@ -58,7 +58,7 @@ public class RegistrationService {
         profile.setTenantId(organization.getId());
         profile.setFirstName(request.firstName().trim());
         profile.setLastName(request.lastName().trim());
-        profile.setPhone(request.phone().trim());
+        profile.setPhone(request.phone().replaceAll("\\s+", ""));
         userProfileRepository.save(profile);
 
         attachRoleByName(user, organization.getId(), OnboardingService.DEFAULT_ROLE_NAME);

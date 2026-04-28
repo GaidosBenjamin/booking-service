@@ -15,11 +15,12 @@ public interface BuildingRepository extends JpaRepository<Building, UUID> {
     @Query("""
         select b from Building b
         where b.tenantId = :#{currentUser.tenantId()}
+        order by b.tier.basePrice desc
         """)
     List<Building> findAllForCurrentTenant();
 
     @Query("""
-        select distinct b from Building b
+        select b from Building b
         where b.tenantId = :#{currentUser.tenantId()}
           and exists (
             select r from Room r
@@ -29,6 +30,7 @@ public interface BuildingRepository extends JpaRepository<Building, UUID> {
               and (r.minAge is null or :age >= r.minAge)
               and (r.maxAge is null or :age <= r.maxAge)
           )
+        order by b.tier.basePrice desc
         """)
     List<Building> findForCurrentTenantFiltered(
         @Param("gender") String gender,

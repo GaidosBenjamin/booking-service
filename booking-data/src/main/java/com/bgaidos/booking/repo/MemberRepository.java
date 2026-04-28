@@ -9,14 +9,14 @@ import java.util.UUID;
 
 public interface MemberRepository extends JpaRepository<Member, UUID> {
 
-    @Query("""
-        select count(m) > 0 from Member m
-        where m.tenantId = :tenantId
+    @Query(value = """
+        select count(*) > 0 from members m
+        where m.tenant_id = :tenantId
           and (
             (:email is not null and lower(m.email) = :email)
-            or (:phone is not null and lower(m.phone) = :phone)
+            or (:phone is not null and replace(lower(m.phone), ' ', '') = replace(lower(:phone), ' ', ''))
           )
-        """)
+        """, nativeQuery = true)
     boolean existsByTenantIdAndEmailOrPhone(
         @Param("tenantId") UUID tenantId,
         @Param("email") String email,

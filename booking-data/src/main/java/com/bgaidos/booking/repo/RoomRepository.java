@@ -17,6 +17,7 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
     @Query("""
         select r from Room r
         where r.tenantId = :#{currentUser.tenantId()}
+        order by r.name
         """)
     List<Room> findAllForCurrentTenant();
 
@@ -27,6 +28,7 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
           and (r.minAge is null or :age >= r.minAge)
           and (r.maxAge is null or :age <= r.maxAge)
           and (:buildingId is null or r.building.id = :buildingId)
+        order by r.name
         """)
     List<Room> findForCurrentTenantFiltered(
         @Param("gender") String gender,
