@@ -58,6 +58,11 @@ public class StripeWebhookService {
                 var session = extractSession(event);
                 if (session != null) onExpiredOrFailed(event.getType(), session);
             }
+            // payment_intent.* events fire as part of Checkout internals — no action needed at session level
+            case "payment_intent.created",
+                 "payment_intent.succeeded",
+                 "payment_intent.payment_failed",
+                 "payment_intent.canceled" -> log.debug("payment_intent lifecycle event type={}", event.getType());
             default -> log.warn("unhandled stripe event type={}", event.getType());
         }
     }

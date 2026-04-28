@@ -150,6 +150,7 @@ public class BookingService {
             return;
         }
         booking.setStatus(PaymentStatus.CANCELED);
+        expireStripeSession(booking.getStripeSessionId());
         var camperIds = bookingItemRepository.findAllByBookingId(id).stream()
             .map(item -> item.getCamper().getId())
             .toList();
@@ -244,6 +245,14 @@ public class BookingService {
             .setPriceData(priceData)
             .setQuantity(1L)
             .build();
+    }
+
+    private static void expireStripeSession(String sessionId) {
+        try {
+            Session.retrieve(sessionId).expire();
+        } catch (StripeException ex) {
+            log.warn("could not expire stripe session sessionId={}: {}", sessionId, ex.getMessage());
+        }
     }
 
     private static long toLongCents(BigDecimal amount) {
