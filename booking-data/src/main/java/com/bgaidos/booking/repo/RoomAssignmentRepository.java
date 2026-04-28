@@ -25,8 +25,21 @@ public interface RoomAssignmentRepository extends JpaRepository<RoomAssignment, 
         """)
     Optional<RoomAssignment> findByIdForCurrentTenant(@Param("id") UUID id);
 
-    @Query("select a from RoomAssignment a where a.camper.id = :camperId")
+    @Query("""
+        select a from RoomAssignment a
+        join fetch a.room r
+        join fetch r.building
+        where a.camper.id = :camperId
+        """)
     Optional<RoomAssignment> findByCamperId(@Param("camperId") UUID camperId);
+
+    @Query("""
+        select a from RoomAssignment a
+        join fetch a.room r
+        join fetch r.building
+        where a.camper.id in :camperIds
+        """)
+    List<RoomAssignment> findByCamperIds(@Param("camperIds") Collection<UUID> camperIds);
 
     @Query("select count(a) from RoomAssignment a where a.room.id = :roomId")
     long countByRoomId(@Param("roomId") UUID roomId);

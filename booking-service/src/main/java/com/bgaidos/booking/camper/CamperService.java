@@ -3,6 +3,7 @@ package com.bgaidos.booking.camper;
 import com.bgaidos.booking.api.camper.CamperCreateRequest;
 import com.bgaidos.booking.api.camper.CamperPatchRequest;
 import com.bgaidos.booking.api.camper.CamperResponse;
+import com.bgaidos.booking.api.camper.RoomAssignmentSummary;
 import com.bgaidos.booking.api.camper.RoomHoldSummary;
 import com.bgaidos.booking.auth.service.session.CurrentUser;
 import com.bgaidos.booking.common.exception.BadRequestException;
@@ -10,6 +11,7 @@ import com.bgaidos.booking.common.exception.NotFoundException;
 import com.bgaidos.booking.entity.Camper;
 import com.bgaidos.booking.entity.CamperStatus;
 import com.bgaidos.booking.entity.PaymentStatus;
+import com.bgaidos.booking.entity.RoomAssignment;
 import com.bgaidos.booking.entity.RoomHold;
 import com.bgaidos.booking.repo.BookingItemRepository;
 import com.bgaidos.booking.repo.CamperRepository;
@@ -50,15 +52,19 @@ public class CamperService {
         log.debug("list campers user={} count={}", currentUser.userId(), campers.size());
 
         var now = Instant.now();
+        var camperIds = campers.stream().map(Camper::getId).toList();
         var holdByCamperId = holdRepository.findActiveForCurrentUser(now).stream()
             .collect(Collectors.toMap(h -> h.getCamper().getId(), h -> h));
+        var assignmentByCamperId = assignmentRepository.findByCamperIds(camperIds).stream()
+            .collect(Collectors.toMap(a -> a.getCamper().getId(), a -> a));
 
         return campers.stream()
             .map(camper -> mapper.toResponse(
                 camper,
                 computeStatus(camper, holdByCamperId.containsKey(camper.getId())).name(),
                 hasRoomsAvailable(camper, now),
-                toHoldSummary(holdByCamperId.get(camper.getId()))))
+                toHoldSummary(holdByCamperId.get(camper.getId())),
+                toAssignmentSummary(assignmentByCamperId.get(camper.getId()))))
             .toList();
     }
 
@@ -98,11 +104,13 @@ public class CamperService {
     private CamperResponse toResponseWithStatus(Camper camper) {
         var now = Instant.now();
         var hold = holdRepository.findByCamperId(camper.getId()).orElse(null);
+        var assignment = assignmentRepository.findByCamperId(camper.getId()).orElse(null);
         return mapper.toResponse(
             camper,
             computeStatus(camper, hold != null).name(),
             hasRoomsAvailable(camper, now),
-            toHoldSummary(hold));
+            toHoldSummary(hold),
+            toAssignmentSummary(assignment));
     }
 
     private static RoomHoldSummary toHoldSummary(RoomHold hold) {
@@ -114,6 +122,17 @@ public class CamperService {
             room.getImageUrl(),
             room.getBuilding().getName(),
             hold.getExpiresAt());
+    }
+
+    private static RoomAssignmentSummary toAssignmentSummary(RoomAssignment assignment) {
+        if (assignment == null) return null;
+        var room = assignment.getRoom();
+        return new RoomAssignmentSummary(
+            assignment.getId(),
+            room.getName(),
+            room.getImageUrl(),
+            room.getBuilding().getName(),
+            assignment.getAssignedOn());
     }
 
     private boolean hasRoomsAvailable(Camper camper, Instant now) {

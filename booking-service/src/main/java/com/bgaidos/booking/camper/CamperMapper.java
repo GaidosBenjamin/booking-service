@@ -3,6 +3,7 @@ package com.bgaidos.booking.camper;
 import com.bgaidos.booking.api.camper.CamperCreateRequest;
 import com.bgaidos.booking.api.camper.CamperPatchRequest;
 import com.bgaidos.booking.api.camper.CamperResponse;
+import com.bgaidos.booking.api.camper.RoomAssignmentSummary;
 import com.bgaidos.booking.api.camper.RoomHoldSummary;
 import com.bgaidos.booking.entity.Camper;
 import org.mapstruct.BeanMapping;
@@ -27,7 +28,8 @@ public interface CamperMapper {
     @Mapping(target = "modifiedBy", ignore = true)
     Camper toEntity(CamperCreateRequest request);
 
-    default CamperResponse toResponse(Camper camper, String status, boolean roomsAvailable, RoomHoldSummary roomHold) {
+    default CamperResponse toResponse(Camper camper, String status, boolean roomsAvailable,
+                                       RoomHoldSummary roomHold, RoomAssignmentSummary roomAssignment) {
         return new CamperResponse(
             camper.getId(),
             camper.getFirstName(),
@@ -39,6 +41,7 @@ public interface CamperMapper {
             status,
             roomsAvailable,
             roomHold,
+            roomAssignment,
             camper.getCreatedOn());
     }
 

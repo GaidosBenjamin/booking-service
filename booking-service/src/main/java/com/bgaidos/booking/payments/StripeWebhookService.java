@@ -45,7 +45,7 @@ public class StripeWebhookService {
             signature,
             stripeConfig.getWebhookSecret());
 
-        log.info("stripe webhook received type={} payload={}", event.getType(), event.toJson());
+        log.info("stripe webhook received type={}", event.getType());
 
         switch (event.getType()) {
             case "checkout.session.completed",
@@ -128,7 +128,7 @@ public class StripeWebhookService {
         }
         try {
             var obj = deserializer.deserializeUnsafe();
-            log.info("deserialized unsafe obj: {}", obj);
+            log.debug("deserialized unsafe obj");
             if (obj instanceof Session s) return s;
         } catch (Exception e) {
             log.warn("could not deserialize Session from event type={}: {}", event.getType(), e.getMessage());

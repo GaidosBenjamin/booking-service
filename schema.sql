@@ -324,7 +324,7 @@ create table room_assignments
     assigned_on timestamptz      default current_timestamp,
 
     created_on  timestamptz not null,
-    created_by  uuid        not null,
+    created_by  uuid,
     modified_on timestamptz,
     modified_by uuid,
 
@@ -450,3 +450,6 @@ alter table "booking-service".buildings
 
 alter table "booking-service".buildings
     add highlights jsonb;
+
+alter table room_assignments
+    alter column created_by drop not null;

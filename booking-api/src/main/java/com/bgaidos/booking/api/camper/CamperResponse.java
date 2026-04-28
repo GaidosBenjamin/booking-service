@@ -15,6 +15,7 @@ public record CamperResponse(
     String status,
     boolean roomsAvailable,
     RoomHoldSummary roomHold,
+    RoomAssignmentSummary roomAssignment,
     Instant createdOn
 ) {
 }
