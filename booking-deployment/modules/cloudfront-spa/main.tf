@@ -4,50 +4,10 @@ locals {
   origin_id   = "s3-${local.bucket_name}"
 }
 
-# ─── ACM Certificate (us-east-1, required by CloudFront) ─
-
-resource "aws_acm_certificate" "this" {
-  provider          = aws.us_east_1
-  domain_name       = local.fqdn
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = {
-    Name      = local.fqdn
-    ManagedBy = "terraform"
-  }
-}
-
 # ─── Cloudflare Zone Lookup ──────────────
 
 data "cloudflare_zone" "main" {
   name = var.domain
-}
-
-# ─── DNS Validation Records ──────────────
-
-resource "cloudflare_record" "validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => dvo
-  }
-
-  zone_id = data.cloudflare_zone.main.id
-  name    = replace(each.value.resource_record_name, ".${var.domain}.", "")
-  content = trimsuffix(each.value.resource_record_value, ".")
-  type    = each.value.resource_record_type
-  ttl     = 60
-  proxied = false
-}
-
-# ─── Wait for Certificate Validation ─────
-
-resource "aws_acm_certificate_validation" "this" {
-  provider                = aws.us_east_1
-  certificate_arn         = aws_acm_certificate.this.arn
-  validation_record_fqdns = [for r in cloudflare_record.validation : r.hostname]
 }
 
 # ─── S3 Bucket (SPA Origin) ──────────────
@@ -142,7 +102,7 @@ resource "aws_cloudfront_distribution" "spa" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.this.certificate_arn
+    acm_certificate_arn      = var.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }

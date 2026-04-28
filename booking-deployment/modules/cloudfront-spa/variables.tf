@@ -19,6 +19,11 @@ variable "index_document" {
   default     = "index.html"
 }
 
+variable "certificate_arn" {
+  description = "ARN of an ACM certificate in us-east-1 to attach to the CloudFront distribution"
+  type        = string
+}
+
 variable "price_class" {
   description = "CloudFront price class (controls edge geography)"
   type        = string
