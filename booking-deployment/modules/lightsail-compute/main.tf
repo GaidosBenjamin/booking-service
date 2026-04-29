@@ -21,10 +21,14 @@ resource "aws_lightsail_container_service_deployment_version" "app" {
     health_check {
       path                = "/actuator/health"
       success_codes       = "200"
-      interval_seconds    = 60   # Wait 60 seconds between pings
-      timeout_seconds     = 20   # Give the ping 20s to respond
+      # Check more frequently (every 15 seconds)
+      interval_seconds    = 15
+      # Give the ping 10s to respond
+      timeout_seconds     = 10
+      # It will now only take ~30 seconds to be marked healthy once Tomcat starts
       healthy_threshold   = 2
-      unhealthy_threshold = 5    # 5 fails * 60s = 5 minutes of total startup time allowed
+      # 15 seconds * 16 fails = 240 seconds (4 minutes) of allowed startup time
+      unhealthy_threshold = 16
     }
   }
 }
