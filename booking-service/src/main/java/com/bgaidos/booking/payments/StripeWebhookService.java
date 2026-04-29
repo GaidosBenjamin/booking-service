@@ -38,6 +38,7 @@ public class StripeWebhookService {
     private final RoomHoldRepository holdRepository;
     private final RoomAssignmentRepository assignmentRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final DonationService donationService;
 
     public void handle(byte[] rawPayload, String signature) throws SignatureVerificationException {
         var event = Webhook.constructEvent(
@@ -51,12 +52,16 @@ public class StripeWebhookService {
             case "checkout.session.completed",
                  "checkout.session.async_payment_succeeded" -> {
                 var session = extractSession(event);
-                if (session != null) onSucceeded(session);
+                if (session == null) break;
+                if (isBookingSession(session)) onSucceeded(session);
+                else if (isDonationSession(session)) donationService.onWebhookSucceeded(session);
             }
             case "checkout.session.expired",
                  "checkout.session.async_payment_failed" -> {
                 var session = extractSession(event);
-                if (session != null) onExpiredOrFailed(event.getType(), session);
+                if (session == null) break;
+                if (isBookingSession(session)) onExpiredOrFailed(event.getType(), session);
+                else if (isDonationSession(session)) donationService.onWebhookExpiredOrFailed(event.getType(), session);
             }
             // payment_intent.* events fire as part of Checkout internals — no action needed at session level
             case "payment_intent.created",
@@ -123,6 +128,19 @@ public class StripeWebhookService {
                 items.forEach(item -> item.getCamper().setStatus(CamperStatus.PAYMENT_FAILED));
             }
         });
+    }
+
+    private static boolean isBookingSession(Session session) {
+        return hasEntityType(session, StripeEntityType.BOOKING);
+    }
+
+    private static boolean isDonationSession(Session session) {
+        return hasEntityType(session, StripeEntityType.DONATION);
+    }
+
+    private static boolean hasEntityType(Session session, StripeEntityType expected) {
+        var entityType = session.getMetadata() != null ? session.getMetadata().get("entityType") : null;
+        return expected.name().equals(entityType);
     }
 
     private static Session extractSession(Event event) {

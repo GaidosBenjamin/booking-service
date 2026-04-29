@@ -201,11 +201,15 @@ public class BookingService {
         try {
             return Session.create(SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setPaymentIntentData(SessionCreateParams.PaymentIntentData.builder()
+                    .setDescription(StripeEntityType.BOOKING.description)
+                    .build())
                 .setCustomerEmail(currentUser.email())
                 .setExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES).getEpochSecond())
                 .setSuccessUrl(stripeConfig.getSuccessUrl() + "?bookingId=" + bookingId)
                 .setCancelUrl(stripeConfig.getCancelUrl() + "?bookingId=" + bookingId)
                 .addAllLineItem(lineItems)
+                .putMetadata("entityType", StripeEntityType.BOOKING.name())
                 .putMetadata("tenantId", currentUser.tenantId().toString())
                 .putMetadata("parentUserId", currentUser.userId().toString())
                 .build());

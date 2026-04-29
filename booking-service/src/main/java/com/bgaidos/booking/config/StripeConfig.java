@@ -22,6 +22,12 @@ public class StripeConfig {
     @Value("${stripe.cancel-url}")
     private String cancelUrl;
 
+    @Value("${stripe.donation-success-url}")
+    private String donationSuccessUrl;
+
+    @Value("${stripe.donation-cancel-url}")
+    private String donationCancelUrl;
+
     @PostConstruct
     public void init() {
         Stripe.apiKey = apiKey;

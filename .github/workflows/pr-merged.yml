@@ -30,6 +30,8 @@ jobs:
       TF_VAR_stripe_webhook_secret: ${{ secrets.TF_VAR_STRIPE_WEBHOOK_SECRET }}
       TF_VAR_stripe_success_url: ${{ secrets.TF_VAR_STRIPE_SUCCESS_URL }}
       TF_VAR_stripe_cancel_url: ${{ secrets.TF_VAR_STRIPE_CANCEL_URL }}
+      TF_VAR_stripe_donation_success_url: ${{ secrets.TF_VAR_STRIPE_DONATION_SUCCESS_URL }}
+      TF_VAR_stripe_donation_cancel_url: ${{ secrets.TF_VAR_STRIPE_DONATION_CANCEL_URL }}
       TF_VAR_mail_from: ${{ secrets.TF_VAR_MAIL_FROM }}
       TF_VAR_mail_brand: ${{ secrets.TF_VAR_MAIL_BRAND }}
       TF_VAR_log_level: ${{ secrets.TF_VAR_LOG_LEVEL }}

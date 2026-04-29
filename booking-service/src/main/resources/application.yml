@@ -50,6 +50,8 @@ stripe:
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
   success-url: ${STRIPE_SUCCESS_URL}
   cancel-url: ${STRIPE_CANCEL_URL}
+  donation-success-url: ${STRIPE_DONATION_SUCCESS_URL}
+  donation-cancel-url: ${STRIPE_DONATION_CANCEL_URL}
 
 management:
   health:

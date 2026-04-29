@@ -94,6 +94,9 @@ public class RoomHoldService {
     }
 
     private static void assertCompatible(Camper camper, Room room) {
+        if (room.isLeaderRoom()) {
+            throw new BadRequestException("cannot place a camper in a leader's room");
+        }
         if (room.getAllowedGender() != null && !room.getAllowedGender().equals(camper.getGender())) {
             throw new BadRequestException("room does not allow camper's gender");
         }

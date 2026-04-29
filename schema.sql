@@ -453,3 +453,20 @@ alter table "booking-service".buildings
 
 alter table room_assignments
     alter column created_by drop not null;
+
+-- 20. donations
+create table donations
+(
+    id                uuid primary key default uuidv7(),
+    name              varchar(255),
+    org_slug          varchar(255)   not null,
+    amount            numeric(12, 2) not null,
+    currency          varchar(3)     not null,
+    status            payment_status not null,
+    stripe_session_id varchar(255)   not null unique,
+    expires_at        timestamptz,
+    created_on        timestamptz    not null,
+    created_by        uuid,
+    modified_on       timestamptz,
+    modified_by       uuid
+);

@@ -77,6 +77,9 @@ module "lightsail-compute" {
     STRIPE_SUCCESS_URL    = var.stripe_success_url
     STRIPE_CANCEL_URL     = var.stripe_cancel_url
 
+    STRIPE_DONATION_SUCCESS_URL = var.stripe_donation_success_url
+    STRIPE_DONATION_CANCEL_URL  = var.stripe_donation_cancel_url
+
     MAIL_FROM  = var.mail_from
     MAIL_BRAND = var.mail_brand
 

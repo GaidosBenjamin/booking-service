@@ -59,6 +59,16 @@ variable "stripe_cancel_url" {
   type        = string
 }
 
+variable "stripe_donation_success_url" {
+  description = "URL to redirect to after successful Stripe donation"
+  type        = string
+}
+
+variable "stripe_donation_cancel_url" {
+  description = "URL to redirect to after cancelled Stripe donation"
+  type        = string
+}
+
 variable "mail_from" {
   description = "From address used in outbound emails"
   type        = string
