@@ -44,7 +44,7 @@ variable "stripe_api_key" {
 }
 
 variable "sms_api_key" {
-  description = "Stripe secret API key"
+  description = "SMS secret API key"
   type        = string
   sensitive   = true
 }
