@@ -35,6 +35,7 @@ jobs:
       TF_VAR_mail_from: ${{ secrets.TF_VAR_MAIL_FROM }}
       TF_VAR_mail_brand: ${{ secrets.TF_VAR_MAIL_BRAND }}
       TF_VAR_log_level: ${{ secrets.TF_VAR_LOG_LEVEL }}
+      TF_VAR_sms_api_key: ${{ secrets.TF_VAR_SMS_API_KEY }}
       TF_VAR_github_org: GaidosBenjamin
 
     steps:
