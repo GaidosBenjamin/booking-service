@@ -32,6 +32,7 @@ public class UserService {
         if (request.firstName() != null) profile.setFirstName(request.firstName().trim());
         if (request.lastName() != null) profile.setLastName(request.lastName().trim());
         if (request.phone() != null) profile.setPhone(request.phone().trim());
+        if (request.language() != null) profile.setPreferredLocale("en".equals(request.language()) ? "en" : "ro");
         log.info("patched user profile userId={}", currentUser.userId());
         return toResponse(profile);
     }
@@ -44,6 +45,7 @@ public class UserService {
             profile != null ? profile.getFirstName() : null,
             profile != null ? profile.getLastName() : null,
             profile != null ? profile.getPhone() : null,
+            profile != null ? profile.getPreferredLocale() : "ro",
             membershipService.isMember()
         );
     }

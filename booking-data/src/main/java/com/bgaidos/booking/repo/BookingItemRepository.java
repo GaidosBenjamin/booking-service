@@ -38,6 +38,14 @@ public interface BookingItemRepository extends JpaRepository<BookingItem, UUID> 
         @Param("statuses") List<PaymentStatus> statuses
     );
 
+    @Query("""
+        select i from BookingItem i
+        join fetch i.booking b
+        where i.camper.id = :camperId
+          and b.status = com.bgaidos.booking.entity.PaymentStatus.SUCCEEDED
+        """)
+    List<BookingItem> findSucceededByCamperId(@Param("camperId") UUID camperId);
+
     @Modifying
     @Query(
         value = """
@@ -49,4 +57,8 @@ public interface BookingItemRepository extends JpaRepository<BookingItem, UUID> 
             """,
         nativeQuery = true)
     void deleteDeadItemsByCamperId(@Param("camperId") UUID camperId);
+
+    @Modifying
+    @Query(value = "delete from booking_items where camper_id = :camperId", nativeQuery = true)
+    void deleteAllByCamperId(@Param("camperId") UUID camperId);
 }

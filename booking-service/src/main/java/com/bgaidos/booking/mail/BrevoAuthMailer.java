@@ -13,32 +13,41 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
+
 
 @Slf4j
 @RequiredArgsConstructor
 public class BrevoAuthMailer implements AuthMailer {
 
     private final JavaMailSender mailSender;
+    private final MailTemplates mailTemplates;
     private final String from;
     private final String brandName;
 
     @Override
-    public void sendVerification(String email, String code, Duration expiresIn) {
-        send(email, MailTemplates.verification(code, expiresIn, brandName));
+    public void sendVerification(String email, String code, Duration expiresIn, Locale locale) {
+        send(email, mailTemplates.verification(code, expiresIn, brandName, locale));
         log.debug("sent verification code to {}", email);
     }
 
     @Override
-    public void sendPasswordReset(String email, String code, Duration expiresIn) {
-        send(email, MailTemplates.passwordReset(code, expiresIn, brandName));
+    public void sendPasswordReset(String email, String code, Duration expiresIn, Locale locale) {
+        send(email, mailTemplates.passwordReset(code, expiresIn, brandName, locale));
         log.debug("sent password reset code to {}", email);
     }
 
     @Override
-    public void sendBookingConfirmation(String email, UUID bookingId, BigDecimal total, String currency, List<String> camperNames) {
-        send(email, MailTemplates.bookingConfirmation(bookingId, total, currency, camperNames, brandName));
+    public void sendBookingConfirmation(String email, UUID bookingId, BigDecimal total, String currency, List<String> camperNames, Locale locale) {
+        send(email, mailTemplates.bookingConfirmation(bookingId, total, currency, camperNames, brandName, locale));
         log.debug("sent booking confirmation to {}", email);
+    }
+
+    @Override
+    public void sendDonationConfirmation(String email, UUID donationId, BigDecimal amount, String currency, String donorName, Locale locale) {
+        send(email, mailTemplates.donationConfirmation(donationId, amount, currency, donorName, brandName, locale));
+        log.debug("sent donation confirmation to {}", email);
     }
 
     private void send(String to, MailBody body) {

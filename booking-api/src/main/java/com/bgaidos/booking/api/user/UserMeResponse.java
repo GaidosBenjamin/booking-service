@@ -9,6 +9,7 @@ public record UserMeResponse(
     String firstName,
     String lastName,
     String phone,
+    String language,
     boolean member
 ) {
 }

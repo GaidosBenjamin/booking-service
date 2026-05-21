@@ -20,6 +20,7 @@ import java.time.Instant;
 public class Donation extends AuditEntity {
 
     private String name;
+    private String email;
     private String orgSlug;
     private BigDecimal amount;
     private String currency;

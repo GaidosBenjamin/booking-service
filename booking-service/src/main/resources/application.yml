@@ -42,6 +42,10 @@ app:
   mail:
     from: ${MAIL_FROM:no-reply@bbso.dev}
     brand-name: ${MAIL_BRAND:BBSO Kids}
+  sms:
+    api-key: ${SMS_API_KEY}
+    sender: ${SMS_SENDER:BBSOKids}
+    default-country-code: "+40"
   room-hold:
     ttl: PT15M
 

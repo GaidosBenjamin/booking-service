@@ -6,6 +6,7 @@ import com.bgaidos.booking.entity.Role;
 import com.bgaidos.booking.entity.User;
 import com.bgaidos.booking.entity.UserProfile;
 import com.bgaidos.booking.entity.UserRole;
+import com.bgaidos.booking.repo.MemberRepository;
 import com.bgaidos.booking.repo.RoleRepository;
 import com.bgaidos.booking.repo.UserProfileRepository;
 import com.bgaidos.booking.repo.UserRepository;
@@ -31,6 +32,7 @@ public class RegistrationService {
     private final UserProfileRepository userProfileRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
 
@@ -42,6 +44,12 @@ public class RegistrationService {
         log.info("registering user in tenant={}", organization.getId());
         if (userRepository.existsByTenantIdAndEmailIgnoreCase(organization.getId(), email)) {
             throw new BadRequestException("email already registered for this organization");
+        }
+
+        //TODO - to remove
+        var phone = request.phone().replaceAll("\\s+", "");
+        if (!memberRepository.existsByTenantIdAndEmailOrPhone(organization.getId(), email, phone)) {
+            throw new BadRequestException("currently only members can register");
         }
 
         var isFirstUser = userRepository.countByTenantId(organization.getId()) == 0;
@@ -59,6 +67,7 @@ public class RegistrationService {
         profile.setFirstName(request.firstName().trim());
         profile.setLastName(request.lastName().trim());
         profile.setPhone(request.phone().replaceAll("\\s+", ""));
+        profile.setPreferredLocale("en".equals(request.language()) ? "en" : "ro");
         userProfileRepository.save(profile);
 
         attachRoleByName(user, organization.getId(), OnboardingService.DEFAULT_ROLE_NAME);

@@ -9,6 +9,8 @@ public record BookingConfirmedEvent(
     UUID bookingId,
     BigDecimal total,
     String currency,
-    List<String> camperNames
+    List<String> camperNames,
+    String language,
+    String phone
 ) {
 }

@@ -43,6 +43,12 @@ variable "stripe_api_key" {
   sensitive   = true
 }
 
+variable "sms_api_key" {
+  description = "Stripe secret API key"
+  type        = string
+  sensitive   = true
+}
+
 variable "stripe_webhook_secret" {
   description = "Stripe webhook signing secret"
   type        = string

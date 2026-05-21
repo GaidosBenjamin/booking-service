@@ -10,5 +10,6 @@ public record RegisterRequest(
 	@NotBlank String password,
 	@NotBlank String firstName,
 	@NotBlank String lastName,
-	@NotBlank String phone) {
+	@NotBlank String phone,
+	String language) {
 }

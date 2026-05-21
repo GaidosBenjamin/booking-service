@@ -3,9 +3,11 @@ package com.bgaidos.booking.auth.service;
 import com.bgaidos.booking.api.auth.ForgotPasswordRequest;
 import com.bgaidos.booking.api.auth.ResetPasswordRequest;
 import com.bgaidos.booking.auth.service.event.PasswordResetCodeIssuedEvent;
+import com.bgaidos.booking.entity.UserProfile;
 import com.bgaidos.booking.util.AuthTokens;
 import com.bgaidos.booking.entity.PasswordResetToken;
 import com.bgaidos.booking.repo.PasswordResetTokenRepository;
+import com.bgaidos.booking.repo.UserProfileRepository;
 import com.bgaidos.booking.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ public class PasswordResetService {
 
     private final TenantLookup tenantLookup;
     private final PasswordResetTokenRepository tokenRepository;
+    private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
     private final RefreshTokenService refreshTokenService;
@@ -57,7 +60,10 @@ public class PasswordResetService {
         token.setExpiresAt(now.plus(ttl));
         tokenRepository.save(token);
 
-        eventPublisher.publishEvent(new PasswordResetCodeIssuedEvent(user.getEmail(), code, ttl));
+        var language = userProfileRepository.findByUserId(user.getId())
+            .map(UserProfile::getPreferredLocale)
+            .orElse("ro");
+        eventPublisher.publishEvent(new PasswordResetCodeIssuedEvent(user.getEmail(), code, ttl, language));
         log.info("issued password reset code for user={}", user.getId());
     }
 

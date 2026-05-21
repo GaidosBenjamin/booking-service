@@ -26,8 +26,7 @@ public class UserProfile extends AuditEntity {
 
     private String firstName;
     private String lastName;
-    @Column(nullable = false)
     private String phone;
-
     private String address;
+    private String preferredLocale = "ro";
 }

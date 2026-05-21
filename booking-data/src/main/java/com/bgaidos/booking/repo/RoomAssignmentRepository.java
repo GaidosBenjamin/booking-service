@@ -2,6 +2,7 @@ package com.bgaidos.booking.repo;
 
 import com.bgaidos.booking.entity.RoomAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -50,4 +51,8 @@ public interface RoomAssignmentRepository extends JpaRepository<RoomAssignment, 
           and a.room.id in :roomIds
         """)
     List<RoomAssignment> findByRoomIds(@Param("roomIds") Collection<UUID> roomIds);
+
+    @Modifying
+    @Query("delete from RoomAssignment a where a.camper.id = :camperId")
+    void deleteByCamperId(@Param("camperId") UUID camperId);
 }

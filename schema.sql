@@ -44,10 +44,11 @@ create table user_profile
     tenant_id   uuid        not null
         references organization (id),
 
-    first_name  text        not null,
-    last_name   text        not null,
-    phone       text        not null,
-    address     text,
+    first_name        text        not null,
+    last_name         text        not null,
+    phone             text        not null,
+    address           text,
+    preferred_locale  text        not null default 'ro',
 
     created_on  timestamptz not null,
     created_by  uuid,
@@ -385,8 +386,9 @@ create table bookings
     tenant_id         uuid           not null references organization (id),
     parent_user_id    uuid           not null references users (id),
 
-    stripe_session_id text           not null,
-    amount_total      decimal(10, 2) not null,
+    stripe_session_id         text           not null,
+    stripe_payment_intent_id  text,
+    amount_total              decimal(10, 2) not null,
     currency          char(3)        not null default 'RON',
     status            payment_status not null default 'PENDING',
 
@@ -459,6 +461,7 @@ create table donations
 (
     id                uuid primary key default uuidv7(),
     name              varchar(255),
+    email             text,
     org_slug          varchar(255)   not null,
     amount            numeric(12, 2) not null,
     currency          varchar(3)     not null,
