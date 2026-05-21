@@ -3,6 +3,7 @@ package com.bgaidos.booking.config;
 import com.bgaidos.booking.mail.AuthMailer;
 import com.bgaidos.booking.mail.BrevoAuthMailer;
 import com.bgaidos.booking.mail.LoggingAuthMailer;
+import com.bgaidos.booking.util.MailTemplates;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,15 +18,16 @@ public class MailConfig {
     @ConditionalOnProperty(prefix = "spring.mail", name = "host")
     public AuthMailer brevoAuthMailer(
         JavaMailSender mailSender,
+        MailTemplates mailTemplates,
         @Value("${app.mail.from}") String from,
         @Value("${app.mail.brand-name}") String brandName
     ) {
-        return new BrevoAuthMailer(mailSender, from, brandName);
+        return new BrevoAuthMailer(mailSender, mailTemplates, from, brandName);
     }
 
     @Bean
     @ConditionalOnMissingBean(AuthMailer.class)
-    public AuthMailer loggingAuthMailer() {
-        return new LoggingAuthMailer();
+    public AuthMailer loggingAuthMailer(MailTemplates mailTemplates) {
+        return new LoggingAuthMailer(mailTemplates);
     }
 }

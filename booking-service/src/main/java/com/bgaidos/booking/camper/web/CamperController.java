@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -52,5 +53,13 @@ public class CamperController {
     @PreAuthorize("hasAuthority('campers:write')")
     public void delete(@PathVariable UUID id) {
         camperService.delete(id);
+    }
+
+    @DeleteMapping("/{id}/force")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public void forceDelete(@PathVariable UUID id) {
+        var context = SecurityContextHolder.getContext();
+        camperService.forceDelete(id);
     }
 }

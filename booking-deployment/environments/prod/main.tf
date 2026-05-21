@@ -68,6 +68,8 @@ module "lightsail-compute" {
     SMTP_USER     = var.smtp_user
     SMTP_PASSWORD = var.smtp_password
 
+    SMS_API_KEY = var.sms_api_key
+
     JWT_SECRET = var.jwt_secret
 
     CORS_ALLOWED_ORIGINS = var.cors_allowed_origins

@@ -30,6 +30,7 @@ public class Booking extends AuditEntity {
     private User parentUser;
 
     private String stripeSessionId;
+    private String stripePaymentIntentId;
     private BigDecimal amountTotal;
     private String currency;
 

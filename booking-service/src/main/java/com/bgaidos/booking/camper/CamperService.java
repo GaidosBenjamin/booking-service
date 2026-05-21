@@ -13,6 +13,7 @@ import com.bgaidos.booking.entity.CamperStatus;
 import com.bgaidos.booking.entity.PaymentStatus;
 import com.bgaidos.booking.entity.RoomAssignment;
 import com.bgaidos.booking.entity.RoomHold;
+import com.bgaidos.booking.payments.StripeRefundService;
 import com.bgaidos.booking.repo.BookingItemRepository;
 import com.bgaidos.booking.repo.CamperRepository;
 import com.bgaidos.booking.repo.RoomAssignmentRepository;
@@ -45,6 +46,7 @@ public class CamperService {
     private final UserRepository userRepository;
     private final CamperMapper mapper;
     private final CurrentUser currentUser;
+    private final StripeRefundService stripeRefundService;
 
     @Transactional(readOnly = true)
     public List<CamperResponse> list() {
@@ -84,6 +86,30 @@ public class CamperService {
         mapper.applyPatch(request, camper);
         log.info("patched camper id={} user={}", id, currentUser.userId());
         return toResponseWithStatus(camper);
+    }
+
+    public void forceDelete(UUID id) {
+        var camper = camperRepository.findByIdForCurrentTenant(id)
+            .orElseThrow(() -> new NotFoundException("camper not found: " + id));
+
+        if (camper.getStatus() == CamperStatus.PAYMENT_SUCCESS) {
+            var items = bookingItemRepository.findSucceededByCamperId(camper.getId());
+            for (var item : items) {
+                var booking = item.getBooking();
+                if (booking.getStripePaymentIntentId() != null) {
+                    stripeRefundService.refund(
+                        booking.getStripePaymentIntentId(), item.getPrice(), booking.getCurrency());
+                } else {
+                    log.warn("skipping refund: no payment_intent_id on booking={} camper={}", booking.getId(), id);
+                }
+            }
+        }
+
+        assignmentRepository.deleteByCamperId(camper.getId());
+        bookingItemRepository.deleteAllByCamperId(camper.getId());
+        holdRepository.deleteByCamperId(camper.getId(), currentUser.tenantId());
+        camperRepository.delete(camper);
+        log.info("force-deleted camper id={} user={}", id, currentUser.userId());
     }
 
     public void delete(UUID id) {

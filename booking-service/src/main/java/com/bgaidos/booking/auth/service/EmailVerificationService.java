@@ -1,10 +1,12 @@
 package com.bgaidos.booking.auth.service;
 
 import com.bgaidos.booking.auth.service.event.VerificationCodeIssuedEvent;
+import com.bgaidos.booking.entity.UserProfile;
 import com.bgaidos.booking.util.AuthTokens;
 import com.bgaidos.booking.entity.EmailVerificationToken;
 import com.bgaidos.booking.entity.User;
 import com.bgaidos.booking.repo.EmailVerificationTokenRepository;
+import com.bgaidos.booking.repo.UserProfileRepository;
 import com.bgaidos.booking.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import java.time.Instant;
 public class EmailVerificationService {
 
     private final EmailVerificationTokenRepository tokenRepository;
+    private final UserProfileRepository userProfileRepository;
     private final TenantLookup tenantLookup;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -42,7 +45,10 @@ public class EmailVerificationService {
         token.setExpiresAt(now.plus(ttl));
         tokenRepository.save(token);
 
-        eventPublisher.publishEvent(new VerificationCodeIssuedEvent(user.getEmail(), code, ttl));
+        var language = userProfileRepository.findByUserId(user.getId())
+            .map(UserProfile::getPreferredLocale)
+            .orElse("ro");
+        eventPublisher.publishEvent(new VerificationCodeIssuedEvent(user.getEmail(), code, ttl, language));
         log.info("issued email verification code for user={}", user.getId());
     }
 

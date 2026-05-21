@@ -7,10 +7,12 @@ import com.bgaidos.booking.entity.BookingItem;
 import com.bgaidos.booking.entity.CamperStatus;
 import com.bgaidos.booking.entity.PaymentStatus;
 import com.bgaidos.booking.entity.RoomAssignment;
+import com.bgaidos.booking.entity.UserProfile;
 import com.bgaidos.booking.repo.BookingItemRepository;
 import com.bgaidos.booking.repo.BookingRepository;
 import com.bgaidos.booking.repo.RoomAssignmentRepository;
 import com.bgaidos.booking.repo.RoomHoldRepository;
+import com.bgaidos.booking.repo.UserProfileRepository;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
@@ -37,6 +39,7 @@ public class StripeWebhookService {
     private final BookingItemRepository bookingItemRepository;
     private final RoomHoldRepository holdRepository;
     private final RoomAssignmentRepository assignmentRepository;
+    private final UserProfileRepository userProfileRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final DonationService donationService;
 
@@ -85,6 +88,7 @@ public class StripeWebhookService {
             return;
         }
         var booking = bookingRepository.findByStripeSessionId(session.getId()).orElseThrow();
+        booking.setStripePaymentIntentId(session.getPaymentIntent());
         var items = bookingItemRepository.findAllByBookingId(booking.getId());
         var now = Instant.now();
         items.forEach(item -> applyBookingItem(item, booking.getTenantId(), now));
@@ -107,12 +111,17 @@ public class StripeWebhookService {
         var camperNames = items.stream()
             .map(i -> i.getCamper().getFirstName() + " " + i.getCamper().getLastName())
             .toList();
+        var profile = userProfileRepository.findByUserId(booking.getParentUser().getId()).orElse(null);
+        var language = profile != null ? profile.getPreferredLocale() : "ro";
+        var phone = profile != null ? profile.getPhone() : null;
         eventPublisher.publishEvent(new BookingConfirmedEvent(
             booking.getParentUser().getEmail(),
             booking.getId(),
             booking.getAmountTotal(),
             booking.getCurrency(),
-            camperNames));
+            camperNames,
+            language,
+            phone));
     }
 
     private void onExpiredOrFailed(String eventType, Session session) {

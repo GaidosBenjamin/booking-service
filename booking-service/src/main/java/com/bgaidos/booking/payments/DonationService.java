@@ -2,6 +2,7 @@ package com.bgaidos.booking.payments;
 
 import com.bgaidos.booking.api.donation.DonationRequest;
 import com.bgaidos.booking.api.donation.DonationResponse;
+import com.bgaidos.booking.auth.service.event.DonationConfirmedEvent;
 import com.bgaidos.booking.common.exception.NotFoundException;
 import com.bgaidos.booking.config.StripeConfig;
 import com.bgaidos.booking.entity.Donation;
@@ -12,6 +13,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,7 @@ public class DonationService {
     private final DonationRepository donationRepository;
     private final StripeConfig stripeConfig;
     private final PlatformTransactionManager txManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     public DonationResponse create(DonationRequest request) {
         var currency = request.currency().toLowerCase();
@@ -41,12 +44,13 @@ public class DonationService {
         donation.setId();
 
         // Stripe API call outside any DB transaction
-        var session = createCheckoutSession(request.amount(), currency, donation.getId());
+        var session = createCheckoutSession(request.amount(), currency, donation.getId(), request.email());
 
         // Write transaction — persist donation
         var writeTx = new TransactionTemplate(txManager);
         var saved = Objects.requireNonNull(writeTx.execute(status -> {
             donation.setName(request.name());
+            donation.setEmail(request.email());
             donation.setOrgSlug(request.orgSlug());
             donation.setAmount(request.amount());
             donation.setCurrency(request.currency().toUpperCase());
@@ -78,7 +82,14 @@ public class DonationService {
             }
             return;
         }
-        log.info("donation SUCCEEDED sessionId={}", session.getId());
+        var donation = donationRepository.findByStripeSessionId(session.getId()).orElseThrow();
+        log.info("donation SUCCEEDED sessionId={} donationId={}", session.getId(), donation.getId());
+        var details = session.getCustomerDetails();
+        var email = (details != null && details.getEmail() != null) ? details.getEmail() : donation.getEmail();
+        if (email != null && !email.isBlank()) {
+            eventPublisher.publishEvent(new DonationConfirmedEvent(
+                email, donation.getId(), donation.getAmount(), donation.getCurrency(), donation.getName()));
+        }
     }
 
     public void onWebhookExpiredOrFailed(String eventType, Session session) {
@@ -91,7 +102,7 @@ public class DonationService {
         });
     }
 
-    private Session createCheckoutSession(BigDecimal amount, String currency, UUID donationId) {
+    private Session createCheckoutSession(BigDecimal amount, String currency, UUID donationId, String email) {
         try {
             return Session.create(SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -99,6 +110,7 @@ public class DonationService {
                     .setDescription(StripeEntityType.DONATION.description)
                     .build())
                 .setSubmitType(SessionCreateParams.SubmitType.DONATE)
+                .setCustomerEmail(email)
                 .setExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES).getEpochSecond())
                 .setSuccessUrl(stripeConfig.getDonationSuccessUrl() + "?donationId=" + donationId)
                 .setCancelUrl(stripeConfig.getDonationCancelUrl() + "?donationId=" + donationId)
