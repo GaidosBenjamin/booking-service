@@ -42,9 +42,9 @@ public interface BookingItemRepository extends JpaRepository<BookingItem, UUID> 
         select i from BookingItem i
         join fetch i.booking b
         where i.camper.id = :camperId
-          and b.status = com.bgaidos.booking.entity.PaymentStatus.SUCCEEDED
+          and b.status = :status
         """)
-    List<BookingItem> findSucceededByCamperId(@Param("camperId") UUID camperId);
+    List<BookingItem> findSucceededByCamperId(@Param("camperId") UUID camperId, @Param("status") PaymentStatus status);
 
     @Modifying
     @Query(

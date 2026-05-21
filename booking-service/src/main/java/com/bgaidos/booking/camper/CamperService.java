@@ -93,7 +93,7 @@ public class CamperService {
             .orElseThrow(() -> new NotFoundException("camper not found: " + id));
 
         if (camper.getStatus() == CamperStatus.PAYMENT_SUCCESS) {
-            var items = bookingItemRepository.findSucceededByCamperId(camper.getId());
+            var items = bookingItemRepository.findSucceededByCamperId(camper.getId(), PaymentStatus.SUCCEEDED);
             for (var item : items) {
                 var booking = item.getBooking();
                 if (booking.getStripePaymentIntentId() != null) {
