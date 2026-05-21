@@ -58,7 +58,7 @@ public interface BookingItemRepository extends JpaRepository<BookingItem, UUID> 
         nativeQuery = true)
     void deleteDeadItemsByCamperId(@Param("camperId") UUID camperId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "delete from booking_items where camper_id = :camperId", nativeQuery = true)
     void deleteAllByCamperId(@Param("camperId") UUID camperId);
 }
