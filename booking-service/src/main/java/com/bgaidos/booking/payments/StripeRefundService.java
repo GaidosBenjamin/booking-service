@@ -1,5 +1,6 @@
 package com.bgaidos.booking.payments;
 
+import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Refund;
 import com.stripe.param.RefundCreateParams;
@@ -21,6 +22,13 @@ public class StripeRefundService {
                 .build();
             Refund.create(params);
             log.info("stripe partial refund issued paymentIntentId={} amount={} {}", paymentIntentId, amount, currency);
+        } catch (InvalidRequestException ex) {
+            if ("charge_already_refunded".equals(ex.getCode())) {
+                log.warn("stripe refund skipped — charge already refunded paymentIntentId={}", paymentIntentId);
+                return;
+            }
+            log.error("stripe refund failed paymentIntentId={}: {}", paymentIntentId, ex.getMessage());
+            throw new RuntimeException("Stripe refund failed: " + ex.getMessage(), ex);
         } catch (StripeException ex) {
             log.error("stripe refund failed paymentIntentId={}: {}", paymentIntentId, ex.getMessage());
             throw new RuntimeException("Stripe refund failed: " + ex.getMessage(), ex);
