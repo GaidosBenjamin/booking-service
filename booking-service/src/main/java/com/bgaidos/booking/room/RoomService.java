@@ -106,13 +106,13 @@ public class RoomService {
 
     private static RoomOccupantResponse toOccupant(RoomAssignment a) {
         if (a.getCamper() != null) {
-            return new RoomOccupantResponse(a.getCamper().getId(), a.getCamper().getFirstName(), a.getCamper().getLastName());
+            return new RoomOccupantResponse(a.getCamper().getId(), a.getCamper().getFirstName(), a.getCamper().getLastName(), false);
         }
-        return new RoomOccupantResponse(a.getLeader().getId(), a.getLeader().getFirstName(), a.getLeader().getLastName());
+        return new RoomOccupantResponse(a.getLeader().getId(), a.getLeader().getFirstName(), a.getLeader().getLastName(), true);
     }
 
     private static RoomOccupantResponse toOccupant(RoomHold h) {
-        return new RoomOccupantResponse(h.getCamper().getId(), h.getCamper().getFirstName(), h.getCamper().getLastName());
+        return new RoomOccupantResponse(h.getCamper().getId(), h.getCamper().getFirstName(), h.getCamper().getLastName(), false);
     }
 
     private Building resolveBuilding(UUID buildingId) {
