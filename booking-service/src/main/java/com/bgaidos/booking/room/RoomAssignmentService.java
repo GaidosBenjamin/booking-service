@@ -71,9 +71,6 @@ public class RoomAssignmentService {
             var newRoom = roomRepository.findByIdForCurrentTenantForUpdate(request.roomId())
                 .orElseThrow(() -> new NotFoundException("room not found: " + request.roomId()));
             assertRoomHasRoom(newRoom, Instant.now());
-            if (assignment.getLeader() != null && !newRoom.isLeaderRoom()) {
-                throw new BadRequestException("leaders can only be assigned to leader rooms");
-            }
             assignment.setRoom(newRoom);
         }
 
@@ -95,9 +92,6 @@ public class RoomAssignmentService {
             assignment.setCamper(camper);
             holdRepository.deleteByCamperId(camper.getId(), currentUser.tenantId());
         } else {
-            if (!room.isLeaderRoom()) {
-                throw new BadRequestException("leaders can only be assigned to leader rooms");
-            }
             var leader = leaderRepository.findByIdForCurrentTenant(request.leaderId())
                 .orElseThrow(() -> new NotFoundException("leader not found: " + request.leaderId()));
             assignment.setLeader(leader);

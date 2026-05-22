@@ -334,8 +334,7 @@ create table room_assignments
         (camper_id is null and leader_id is not null)
         ),
 
-    unique (camper_id),
-    unique (leader_id)
+    unique (camper_id)
 );
 
 create index idx_room_assignments_room on room_assignments (room_id);
