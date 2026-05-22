@@ -59,7 +59,6 @@ public class CamperController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public void forceDelete(@PathVariable UUID id) {
-        var context = SecurityContextHolder.getContext();
         camperService.forceDelete(id);
     }
 }

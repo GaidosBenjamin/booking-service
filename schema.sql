@@ -377,7 +377,7 @@ create index idx_code_of_conduct_agreements_tenant on code_of_conduct_agreements
 create index idx_code_of_conduct_agreements_user on code_of_conduct_agreements (user_id);
 
 -- 18. payment_status enum + bookings + booking_items
-create type payment_status as enum ('PENDING', 'SUCCEEDED', 'FAILED', 'CANCELED');
+create type payment_status as enum ('PENDING', 'SUCCEEDED', 'FAILED', 'CANCELED', 'REFUNDED');
 
 create table bookings
 (
@@ -454,6 +454,8 @@ alter table "booking-service".buildings
 
 alter table room_assignments
     alter column created_by drop not null;
+
+alter type payment_status add value if not exists 'REFUNDED';
 
 -- 20. donations
 create table donations

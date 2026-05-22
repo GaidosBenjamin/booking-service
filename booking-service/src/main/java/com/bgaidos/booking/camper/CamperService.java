@@ -99,6 +99,7 @@ public class CamperService {
                 if (booking.getStripePaymentIntentId() != null) {
                     stripeRefundService.refund(
                         booking.getStripePaymentIntentId(), item.getPrice(), booking.getCurrency());
+                    booking.setStatus(PaymentStatus.REFUNDED);
                 } else {
                     log.warn("skipping refund: no payment_intent_id on booking={} camper={}", booking.getId(), id);
                 }
