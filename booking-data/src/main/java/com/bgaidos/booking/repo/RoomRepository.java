@@ -28,7 +28,7 @@ public interface RoomRepository extends JpaRepository<Room, UUID> {
           and (r.minAge is null or :age >= r.minAge)
           and (r.maxAge is null or :age <= r.maxAge)
           and (:buildingId is null or r.building.id = :buildingId)
-        order by r.name
+        order by length(r.name), r.name
         """)
     List<Room> findForCurrentTenantFiltered(
         @Param("gender") String gender,

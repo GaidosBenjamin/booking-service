@@ -23,7 +23,8 @@ public class BrevoSmsSender implements SmsSender {
                     "sender", sender,
                     "recipient", e164Phone,
                     "content", content,
-                    "type", "transactional"
+                    "type", "transactional",
+                    "unicode", true
                 ))
                 .retrieve()
                 .toBodilessEntity();

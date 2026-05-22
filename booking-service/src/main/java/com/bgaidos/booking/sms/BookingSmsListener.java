@@ -38,7 +38,7 @@ public class BookingSmsListener {
         var phone = e164Opt.get();
         try {
             var locale = LocaleResolver.resolve(event.language());
-            var content = smsTemplates.bookingConfirmation(locale, brandName);
+            var content = smsTemplates.bookingConfirmation(locale, event.bookingId(), event.total(), event.currency(), event.camperNames(), brandName);
             smsSender.send(phone, content);
         } catch (RuntimeException ex) {
             log.warn("failed to send booking confirmation SMS to {}", phone, ex);

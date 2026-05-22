@@ -2,6 +2,7 @@ package com.bgaidos.booking.sms;
 
 import com.bgaidos.booking.api.sms.BroadcastSmsResponse;
 import com.bgaidos.booking.auth.service.session.CurrentUser;
+import com.bgaidos.booking.entity.CamperStatus;
 import com.bgaidos.booking.repo.UserProfileRepository;
 import com.bgaidos.booking.util.PhoneNumbers;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class SmsBroadcastService {
     @Transactional(readOnly = true)
     public BroadcastSmsResponse broadcast(String textEn, String textRo) {
         var tenantId = currentUser.tenantId();
-        var profiles = userProfileRepository.findProfilesOfParentsWithCampers(tenantId);
+        var profiles = userProfileRepository.findProfilesOfParentsWithCampers(tenantId, CamperStatus.PAYMENT_SUCCESS);
         var queued = 0;
         for (var profile : profiles) {
             var e164Opt = PhoneNumbers.toE164(profile.getPhone(), defaultCountryCode);
