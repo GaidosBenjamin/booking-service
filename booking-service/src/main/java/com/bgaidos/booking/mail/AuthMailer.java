@@ -15,4 +15,6 @@ public interface AuthMailer {
     void sendBookingConfirmation(String email, UUID bookingId, BigDecimal total, String currency, List<String> camperNames, Locale locale);
 
     void sendDonationConfirmation(String email, UUID donationId, BigDecimal amount, String currency, String donorName, Locale locale);
+
+    void sendPaymentReminder(String email, List<String> camperNames, Locale locale);
 }

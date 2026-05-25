@@ -39,4 +39,10 @@ public class LoggingAuthMailer implements AuthMailer {
         log.info("[DEV ONLY] donation confirmation for {} (lang={}): id={} amount={} {} donor={}",
             email, locale.getLanguage(), donationId, amount, currency, donorName);
     }
+
+    @Override
+    public void sendPaymentReminder(String email, List<String> camperNames, Locale locale) {
+        log.info("[DEV ONLY] payment reminder for {} (lang={}): campers={}",
+            email, locale.getLanguage(), camperNames);
+    }
 }

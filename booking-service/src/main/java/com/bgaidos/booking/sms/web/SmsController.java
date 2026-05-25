@@ -23,4 +23,10 @@ public class SmsController {
     public BroadcastSmsResponse broadcast(@Valid @RequestBody BroadcastSmsRequest req) {
         return service.broadcast(req.textEn(), req.textRo());
     }
+
+    @PostMapping("/payment-reminder/broadcast")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public BroadcastSmsResponse broadcastPaymentReminder() {
+        return service.broadcastPaymentReminder();
+    }
 }

@@ -13,6 +13,7 @@ import com.bgaidos.booking.repo.UserRepository;
 import com.bgaidos.booking.repo.UserRoleRepository;
 import com.bgaidos.booking.common.exception.BadRequestException;
 import com.bgaidos.booking.common.exception.NotFoundException;
+import com.bgaidos.booking.settings.RegistrationGate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,22 +36,23 @@ public class RegistrationService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
+    private final RegistrationGate registrationGate;
 
     public void register(RegisterRequest request) {
+        registrationGate.assertEnabled();
+
         var organization = tenantLookup.findOrganizationBySlug(request.organizationSlug())
             .orElseThrow(() -> new NotFoundException("organization not found: " + request.organizationSlug()));
 
         var email = AuthNormalizers.normalize(request.email());
+        var phone = request.phone().replaceAll("\\s+", "");
         log.info("registering user in tenant={}", organization.getId());
         if (userRepository.existsByTenantIdAndEmailIgnoreCase(organization.getId(), email)) {
             throw new BadRequestException("email already registered for this organization");
         }
 
-        //TODO - to remove
-        var phone = request.phone().replaceAll("\\s+", "");
-        if (!memberRepository.existsByTenantIdAndEmailOrPhone(organization.getId(), email, phone)) {
-            throw new BadRequestException("currently only members can register");
-        }
+        var isMember = memberRepository.existsByTenantIdAndEmailOrPhone(organization.getId(), email, phone);
+        registrationGate.assertMemberIfRequired(isMember);
 
         var isFirstUser = userRepository.countByTenantId(organization.getId()) == 0;
 
@@ -66,7 +68,7 @@ public class RegistrationService {
         profile.setTenantId(organization.getId());
         profile.setFirstName(request.firstName().trim());
         profile.setLastName(request.lastName().trim());
-        profile.setPhone(request.phone().replaceAll("\\s+", ""));
+        profile.setPhone(phone);
         profile.setPreferredLocale("en".equals(request.language()) ? "en" : "ro");
         userProfileRepository.save(profile);
 

@@ -50,6 +50,12 @@ public class BrevoAuthMailer implements AuthMailer {
         log.debug("sent donation confirmation to {}", email);
     }
 
+    @Override
+    public void sendPaymentReminder(String email, List<String> camperNames, Locale locale) {
+        send(email, mailTemplates.paymentReminder(camperNames, brandName, locale));
+        log.debug("sent payment reminder to {}", email);
+    }
+
     private void send(String to, MailBody body) {
         var message = mailSender.createMimeMessage();
         try {

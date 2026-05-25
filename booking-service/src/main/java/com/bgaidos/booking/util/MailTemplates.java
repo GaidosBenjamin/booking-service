@@ -185,6 +185,80 @@ public class MailTemplates {
         return new MailBody(subject, html, plain);
     }
 
+    private static final String PAYMENT_REMINDER_URL = "https://camp.bbso.dev";
+
+    public MailBody paymentReminder(List<String> camperNames, String brandName, Locale locale) {
+        var subject = msg("payment_reminder.subject", locale) + " \u2014 " + brandName;
+        var heading = msg("payment_reminder.heading", locale);
+        var intro = msg("payment_reminder.intro", locale);
+        var campersLabel = msg("payment_reminder.campers_label", locale);
+        var plainHeader = msg("payment_reminder.plain_header", locale);
+        var cta = msg("payment_reminder.cta", locale);
+        var footer = msg("payment_reminder.footer", locale);
+        var camperList = camperNames.isEmpty() ? "\u2014" : String.join(", ", camperNames);
+        var lang = locale.getLanguage();
+
+        var plain = """
+            %s
+
+            %s
+
+            %s: %s
+
+            %s: %s
+
+            %s
+
+            \u2014 %s
+            """.formatted(plainHeader, intro, campersLabel, camperList, cta, PAYMENT_REMINDER_URL, footer, brandName);
+
+        var html = """
+            <!DOCTYPE html>
+            <html lang="%s">
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+            <body style="margin:0;padding:0;background-color:#f4f4f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2a2f45;">
+              <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7;">
+                <tr><td align="center" style="padding:40px 16px;">
+                  <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:8px;box-shadow:0 1px 3px rgba(16,24,40,0.08);">
+                    <tr><td style="padding:28px 40px 8px;">
+                      <p style="margin:0;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#6b7280;font-weight:600;">%s</p>
+                    </td></tr>
+                    <tr><td style="padding:8px 40px 24px;">
+                      <h1 style="margin:0;font-size:24px;font-weight:700;color:#111827;">%s</h1>
+                    </td></tr>
+                    <tr><td style="padding:0 40px 24px;color:#4b5563;font-size:15px;line-height:1.6;">
+                      %s
+                    </td></tr>
+                    <tr><td style="padding:0 40px 24px;background-color:#f9fafb;border-radius:6px;">
+                      <table width="100%%" cellpadding="6" cellspacing="0">
+                        <tr><td style="color:#6b7280;font-size:13px;">%s</td><td style="font-size:13px;color:#111827;">%s</td></tr>
+                      </table>
+                    </td></tr>
+                    <tr><td align="center" style="padding:24px 40px;">
+                      <a href="%s" style="display:inline-block;padding:12px 28px;background-color:#111827;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;border-radius:6px;">%s</a>
+                    </td></tr>
+                    <tr><td style="border-top:1px solid #e5e7eb;padding:20px 40px 28px;color:#9ca3af;font-size:12px;">
+                      %s
+                    </td></tr>
+                    <tr><td style="padding:0 40px 28px;color:#9ca3af;font-size:12px;">
+                      \u00a9 %s
+                    </td></tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(
+                lang,
+                escape(brandName), escape(heading), escape(intro),
+                escape(campersLabel), escape(camperList),
+                PAYMENT_REMINDER_URL, escape(cta),
+                escape(footer),
+                escape(brandName));
+
+        return new MailBody(subject, html, plain);
+    }
+
     public String formatDuration(Duration duration, Locale locale) {
         var minutes = duration.toMinutes();
         if (minutes < 60) {

@@ -22,4 +22,9 @@ public class SmsTemplates {
             new Object[]{names, total.stripTrailingZeros().toPlainString(), currency, shortId, brandName},
             locale);
     }
+
+    public String paymentReminder(Locale locale, String brandName, List<String> camperNames) {
+        var names = String.join(", ", camperNames);
+        return messageSource.getMessage("sms.payment_reminder", new Object[]{brandName, names}, locale);
+    }
 }

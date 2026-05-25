@@ -55,7 +55,6 @@ public class BookingService {
     private final CurrentUser currentUser;
     private final StripeConfig stripeConfig;
     private final PlatformTransactionManager txManager;
-
     public BookingResponse create(BookingCreateRequest request) {
         record PreparedItem(
             UUID tenantId,

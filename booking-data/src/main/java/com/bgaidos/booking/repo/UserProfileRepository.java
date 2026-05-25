@@ -25,4 +25,16 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> 
         )
         """)
     List<UserProfile> findProfilesOfParentsWithCampers(@Param("tenantId") UUID tenantId, @Param("status") CamperStatus status);
+
+    @Query("""
+        select p from UserProfile p
+        where p.tenantId = :tenantId
+        and exists (
+            select 1 from Camper c
+            where c.parentUser = p.user
+              and c.tenantId = :tenantId
+              and c.status in :statuses
+        )
+        """)
+    List<UserProfile> findProfilesOfParentsWithCampersIn(@Param("tenantId") UUID tenantId, @Param("statuses") List<CamperStatus> statuses);
 }
