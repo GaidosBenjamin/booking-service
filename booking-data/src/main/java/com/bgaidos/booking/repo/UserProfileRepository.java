@@ -37,4 +37,6 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> 
         )
         """)
     List<UserProfile> findProfilesOfParentsWithCampersIn(@Param("tenantId") UUID tenantId, @Param("statuses") List<CamperStatus> statuses);
+    
+    List<UserProfile> findAllByTenantIdAndPhoneIn(UUID tenantId, List<String> phones);
 }

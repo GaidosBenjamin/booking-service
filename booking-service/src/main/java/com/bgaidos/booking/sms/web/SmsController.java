@@ -2,6 +2,7 @@ package com.bgaidos.booking.sms.web;
 
 import com.bgaidos.booking.api.sms.BroadcastSmsRequest;
 import com.bgaidos.booking.api.sms.BroadcastSmsResponse;
+import com.bgaidos.booking.api.sms.ResendSmsRequest;
 import com.bgaidos.booking.sms.SmsBroadcastService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +29,11 @@ public class SmsController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public BroadcastSmsResponse broadcastPaymentReminder() {
         return service.broadcastPaymentReminder();
+    }
+
+    @PostMapping("/resend")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public BroadcastSmsResponse resend(@Valid @RequestBody ResendSmsRequest req) {
+        return service.broadcastTo(req.phones(), req.textEn(), req.textRo());
     }
 }

@@ -97,4 +97,24 @@ public class SmsBroadcastService {
         log.info("payment reminder SMS broadcast tenant={} queued={}", tenantId, queued);
         return new BroadcastSmsResponse(queued);
     }
+
+    @Transactional(readOnly = true)
+    public BroadcastSmsResponse broadcastTo(List<String> phones, String textEn, String textRo) {
+        var tenantId = currentUser.tenantId();
+        var profiles = userProfileRepository.findAllByTenantIdAndPhoneIn(tenantId, phones);
+        var queued = 0;
+        for (var profile : profiles) {
+            var e164Opt = PhoneNumbers.toE164(profile.getPhone(), defaultCountryCode);
+            if (e164Opt.isEmpty()) {
+                log.warn("skipping resend SMS: malformed phone for user={}", profile.getUser().getId());
+                continue;
+            }
+            var e164 = e164Opt.get();
+            var text = "en".equals(profile.getPreferredLocale()) ? textEn : textRo;
+            taskExecutor.execute(() -> smsSender.send(e164, text));
+            queued++;
+        }
+        log.info("resend SMS broadcast tenant={} phones={} queued={}", tenantId, phones.size(), queued);
+        return new BroadcastSmsResponse(queued);
+    }
 }
