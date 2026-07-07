@@ -55,16 +55,9 @@ public class BookingService {
     private final CurrentUser currentUser;
     private final StripeConfig stripeConfig;
     private final PlatformTransactionManager txManager;
-    public BookingResponse create(BookingCreateRequest request) {
-        record PreparedItem(
-            UUID tenantId,
-            UUID camperId, String camperFirstName, String camperLastName,
-            UUID tierId, String tierName, String tierCurrency,
-            UUID roomId,
-            BigDecimal price
-        ) {}
+    private final BookingConfirmationService confirmationService;
 
-        // Phase 1: read-only transaction — load holds, resolve membership, build item data
+    public BookingResponse create(BookingCreateRequest request) {
         var readTx = new TransactionTemplate(txManager);
         readTx.setReadOnly(true);
         List<PreparedItem> prepared = Objects.requireNonNull(readTx.execute(status -> {
@@ -96,17 +89,22 @@ public class BookingService {
         var currency = prepared.getFirst().tierCurrency().toLowerCase();
         var total = prepared.stream().map(PreparedItem::price).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Pre-allocate entity so its ID can be embedded in Stripe return URLs before the write transaction
         var b = new Booking();
         b.setId();
 
-        // Phase 2: Stripe API call — outside any DB transaction to avoid connection pool starvation
+        if (total.compareTo(BigDecimal.ZERO) == 0) {
+            return createFreeBooking(b, prepared, currency, total);
+        }
+
         var stripeLineItems = prepared.stream()
+            .filter(item -> item.price().compareTo(BigDecimal.ZERO) > 0)
             .map(item -> toStripeLineItem(item.camperFirstName(), item.camperLastName(), item.tierName(), item.price(), currency))
             .toList();
+        if (stripeLineItems.isEmpty()) {
+            throw new BadRequestException("no paid items to checkout");
+        }
         var session = createCheckoutSession(stripeLineItems, currency, b.getId());
 
-        // Phase 3: write transaction — persist booking and items using proxy references
         var writeTx = new TransactionTemplate(txManager);
         var booking = Objects.requireNonNull(writeTx.execute(status -> {
             b.setTenantId(currentUser.tenantId());
@@ -120,22 +118,51 @@ public class BookingService {
             var saved = bookingRepository.save(b);
             var camperIds = prepared.stream().map(PreparedItem::camperId).toList();
             holdRepository.extendByCamperIds(camperIds, currentUser.tenantId(), sessionExpiresAt);
-            for (var item : prepared) {
-                var bi = new BookingItem();
-                bi.setTenantId(item.tenantId());
-                bi.setBooking(saved);
-                bi.setCamper(camperRepository.getReferenceById(item.camperId()));
-                bi.setTier(tierRepository.getReferenceById(item.tierId()));
-                bi.setRoom(roomRepository.getReferenceById(item.roomId()));
-                bi.setPrice(item.price());
-                bookingItemRepository.save(bi);
-            }
+            persistItems(saved, prepared);
             return saved;
         }));
 
         log.info("created booking id={} sessionId={} amount={} campers={}",
             booking.getId(), session.getId(), total, prepared.size());
         return toResponse(booking, session.getUrl());
+    }
+
+    private BookingResponse createFreeBooking(
+        Booking b,
+        List<PreparedItem> prepared,
+        String currency,
+        BigDecimal total
+    ) {
+        var writeTx = new TransactionTemplate(txManager);
+        var booking = Objects.requireNonNull(writeTx.execute(status -> {
+            b.setTenantId(currentUser.tenantId());
+            b.setParentUser(userRepository.getReferenceById(currentUser.userId()));
+            b.setAmountTotal(total);
+            b.setCurrency(currency.toUpperCase());
+            b.setStatus(PaymentStatus.SUCCEEDED);
+            b.setExpiresAt(Instant.now());
+            var saved = bookingRepository.save(b);
+            persistItems(saved, prepared);
+            var savedItems = bookingItemRepository.findAllByBookingId(saved.getId());
+            confirmationService.confirmAllItems(saved, savedItems);
+            return saved;
+        }));
+
+        log.info("created free booking id={} amount={} campers={}", booking.getId(), total, prepared.size());
+        return toResponse(booking, null);
+    }
+
+    private void persistItems(Booking booking, List<PreparedItem> prepared) {
+        for (var item : prepared) {
+            var bi = new BookingItem();
+            bi.setTenantId(item.tenantId());
+            bi.setBooking(booking);
+            bi.setCamper(camperRepository.getReferenceById(item.camperId()));
+            bi.setTier(tierRepository.getReferenceById(item.tierId()));
+            bi.setRoom(roomRepository.getReferenceById(item.roomId()));
+            bi.setPrice(item.price());
+            bookingItemRepository.save(bi);
+        }
     }
 
     @Transactional
@@ -149,7 +176,9 @@ public class BookingService {
             return;
         }
         booking.setStatus(PaymentStatus.CANCELED);
-        expireStripeSession(booking.getStripeSessionId());
+        if (booking.getStripeSessionId() != null) {
+            expireStripeSession(booking.getStripeSessionId());
+        }
         var camperIds = bookingItemRepository.findAllByBookingId(id).stream()
             .map(item -> item.getCamper().getId())
             .toList();
@@ -263,4 +292,12 @@ public class BookingService {
             .setScale(0, RoundingMode.HALF_UP)
             .longValue();
     }
+
+    private record PreparedItem(
+        UUID tenantId,
+        UUID camperId, String camperFirstName, String camperLastName,
+        UUID tierId, String tierName, String tierCurrency,
+        UUID roomId,
+        BigDecimal price
+    ) {}
 }

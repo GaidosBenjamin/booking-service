@@ -1,32 +1,20 @@
 package com.bgaidos.booking.payments;
 
-import com.bgaidos.booking.auth.service.event.BookingConfirmedEvent;
 import com.bgaidos.booking.config.StripeConfig;
-import com.bgaidos.booking.entity.Booking;
-import com.bgaidos.booking.entity.BookingItem;
 import com.bgaidos.booking.entity.CamperStatus;
 import com.bgaidos.booking.entity.PaymentStatus;
-import com.bgaidos.booking.entity.RoomAssignment;
-import com.bgaidos.booking.entity.UserProfile;
 import com.bgaidos.booking.repo.BookingItemRepository;
 import com.bgaidos.booking.repo.BookingRepository;
-import com.bgaidos.booking.repo.RoomAssignmentRepository;
-import com.bgaidos.booking.repo.RoomHoldRepository;
-import com.bgaidos.booking.repo.UserProfileRepository;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -37,10 +25,7 @@ public class StripeWebhookService {
     private final StripeConfig stripeConfig;
     private final BookingRepository bookingRepository;
     private final BookingItemRepository bookingItemRepository;
-    private final RoomHoldRepository holdRepository;
-    private final RoomAssignmentRepository assignmentRepository;
-    private final UserProfileRepository userProfileRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final BookingConfirmationService confirmationService;
     private final DonationService donationService;
 
     public void handle(byte[] rawPayload, String signature) throws SignatureVerificationException {
@@ -66,7 +51,6 @@ public class StripeWebhookService {
                 if (isBookingSession(session)) onExpiredOrFailed(event.getType(), session);
                 else if (isDonationSession(session)) donationService.onWebhookExpiredOrFailed(event.getType(), session);
             }
-            // payment_intent.* events fire as part of Checkout internals — no action needed at session level
             case "payment_intent.created",
                  "payment_intent.succeeded",
                  "payment_intent.payment_failed",
@@ -76,7 +60,6 @@ public class StripeWebhookService {
     }
 
     private void onSucceeded(Session session) {
-        // Atomic CAS update — only one concurrent webhook wins; prevents duplicate assignment creation
         var updated = bookingRepository.updateStatus(session.getId(), PaymentStatus.PENDING, PaymentStatus.SUCCEEDED);
         if (updated == 0) {
             var booking = bookingRepository.findByStripeSessionId(session.getId()).orElse(null);
@@ -90,38 +73,8 @@ public class StripeWebhookService {
         var booking = bookingRepository.findByStripeSessionId(session.getId()).orElseThrow();
         booking.setStripePaymentIntentId(session.getPaymentIntent());
         var items = bookingItemRepository.findAllByBookingId(booking.getId());
-        var now = Instant.now();
-        items.forEach(item -> applyBookingItem(item, booking.getTenantId(), now));
+        confirmationService.confirmAllItems(booking, items);
         log.info("booking SUCCEEDED id={} sessionId={} assignments={}", booking.getId(), session.getId(), items.size());
-        publishConfirmation(booking, items);
-    }
-
-    private void applyBookingItem(BookingItem item, UUID tenantId, Instant now) {
-        holdRepository.deleteByCamperId(item.getCamper().getId(), tenantId);
-        item.getCamper().setStatus(CamperStatus.PAYMENT_SUCCESS);
-        var assignment = new RoomAssignment();
-        assignment.setTenantId(tenantId);
-        assignment.setRoom(item.getRoom());
-        assignment.setCamper(item.getCamper());
-        assignment.setAssignedOn(now);
-        assignmentRepository.save(assignment);
-    }
-
-    private void publishConfirmation(Booking booking, List<BookingItem> items) {
-        var camperNames = items.stream()
-            .map(i -> i.getCamper().getFirstName() + " " + i.getCamper().getLastName())
-            .toList();
-        var profile = userProfileRepository.findByUserId(booking.getParentUser().getId()).orElse(null);
-        var language = profile != null ? profile.getPreferredLocale() : "ro";
-        var phone = profile != null ? profile.getPhone() : null;
-        eventPublisher.publishEvent(new BookingConfirmedEvent(
-            booking.getParentUser().getEmail(),
-            booking.getId(),
-            booking.getAmountTotal(),
-            booking.getCurrency(),
-            camperNames,
-            language,
-            phone));
     }
 
     private void onExpiredOrFailed(String eventType, Session session) {
@@ -170,4 +123,3 @@ public class StripeWebhookService {
         return null;
     }
 }
-
