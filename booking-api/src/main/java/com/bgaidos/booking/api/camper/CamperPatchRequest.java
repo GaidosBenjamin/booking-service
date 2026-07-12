@@ -8,7 +8,7 @@ public record CamperPatchRequest(
     String firstName,
     String lastName,
     LocalDate dateOfBirth,
-    String grade,
+    @Pattern(regexp = "GM[1-9]") String grade,
     @Pattern(regexp = "male|female") String gender,
     String specialRequirements
 ) {

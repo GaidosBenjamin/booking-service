@@ -38,6 +38,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CamperService {
 
+    /** Stand-in DOB for age-based room filtering; not collected in the registration UI. */
+    private static final LocalDate DEFAULT_DATE_OF_BIRTH = LocalDate.of(2016, 6, 1);
+
     private final CamperRepository camperRepository;
     private final RoomHoldRepository holdRepository;
     private final RoomAssignmentRepository assignmentRepository;
@@ -72,6 +75,7 @@ public class CamperService {
 
     public CamperResponse create(CamperCreateRequest request) {
         var camper = mapper.toEntity(request);
+        camper.setDateOfBirth(DEFAULT_DATE_OF_BIRTH);
         camper.setTenantId(currentUser.tenantId());
         camper.setParentUser(userRepository.getReferenceById(currentUser.userId()));
         camper.setStatus(CamperStatus.NEEDS_BED);
