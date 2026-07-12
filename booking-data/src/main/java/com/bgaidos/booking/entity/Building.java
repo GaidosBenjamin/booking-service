@@ -39,4 +39,6 @@ public class Building extends AuditEntity {
     private Map<String, List<HighlightItem>> highlights;
 
     private String imageUrl;
+
+    private boolean listed = true;
 }

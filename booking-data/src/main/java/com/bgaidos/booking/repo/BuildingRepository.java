@@ -15,6 +15,7 @@ public interface BuildingRepository extends JpaRepository<Building, UUID> {
     @Query("""
         select b from Building b
         where b.tenantId = :#{currentUser.tenantId()}
+          and b.listed = true
         order by b.tier.basePrice desc
         """)
     List<Building> findAllForCurrentTenant();
@@ -22,6 +23,7 @@ public interface BuildingRepository extends JpaRepository<Building, UUID> {
     @Query("""
         select b from Building b
         where b.tenantId = :#{currentUser.tenantId()}
+          and b.listed = true
           and exists (
             select r from Room r
             where r.building = b

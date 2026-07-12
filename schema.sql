@@ -236,6 +236,7 @@ create table buildings
     description text,
     highlights  text[] default '{}' not null,
     image_url   text                not null,
+    listed      boolean default true not null,
 
     created_on  timestamptz         not null,
     created_by  uuid                not null,
@@ -474,3 +475,9 @@ create table donations
     modified_on       timestamptz,
     modified_by       uuid
 );
+
+alter table buildings
+    add listed boolean not null default true;
+
+alter table buildings
+    add listed boolean not null default true;
