@@ -17,5 +17,5 @@ public class User extends AuditEntity {
     private UUID tenantId;
     private String email;
     private String passwordHash;
-    private boolean emailVerified;
+    private boolean emailVerified = true;
 }

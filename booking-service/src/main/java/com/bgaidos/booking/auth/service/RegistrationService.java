@@ -35,7 +35,6 @@ public class RegistrationService {
     private final UserRoleRepository userRoleRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
     private final RegistrationGate registrationGate;
 
     public void register(RegisterRequest request) {
@@ -60,7 +59,7 @@ public class RegistrationService {
         user.setTenantId(organization.getId());
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setEmailVerified(false);
+        user.setEmailVerified(true);
         userRepository.save(user);
 
         var profile = new UserProfile();
@@ -78,7 +77,6 @@ public class RegistrationService {
             attachRoleByName(user, organization.getId(), OnboardingService.ADMIN_ROLE_NAME);
         }
 
-        emailVerificationService.issue(user);
         log.info("registered user={} tenant={} firstUser={}", user.getId(), organization.getId(), isFirstUser);
     }
 
