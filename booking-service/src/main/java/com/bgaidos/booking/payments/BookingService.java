@@ -133,22 +133,43 @@ public class BookingService {
         String currency,
         BigDecimal total
     ) {
+        var expiresAt = Instant.now().plus(30, ChronoUnit.MINUTES);
         var writeTx = new TransactionTemplate(txManager);
         var booking = Objects.requireNonNull(writeTx.execute(status -> {
             b.setTenantId(currentUser.tenantId());
             b.setParentUser(userRepository.getReferenceById(currentUser.userId()));
             b.setAmountTotal(total);
             b.setCurrency(currency.toUpperCase());
-            b.setStatus(PaymentStatus.SUCCEEDED);
-            b.setExpiresAt(Instant.now());
+            b.setStatus(PaymentStatus.PENDING);
+            b.setExpiresAt(expiresAt);
             var saved = bookingRepository.save(b);
+            var camperIds = prepared.stream().map(PreparedItem::camperId).toList();
+            holdRepository.extendByCamperIds(camperIds, currentUser.tenantId(), expiresAt);
             persistItems(saved, prepared);
-            var savedItems = bookingItemRepository.findAllByBookingId(saved.getId());
-            confirmationService.confirmAllItems(saved, savedItems);
             return saved;
         }));
 
-        log.info("created free booking id={} amount={} campers={}", booking.getId(), total, prepared.size());
+        log.info("created free pending booking id={} amount={} campers={}", booking.getId(), total, prepared.size());
+        return toResponse(booking, null);
+    }
+
+    @Transactional
+    public BookingResponse confirm(UUID id) {
+        var booking = bookingRepository.findByIdForCurrentUser(id)
+            .orElseThrow(() -> new NotFoundException("booking not found: " + id));
+        if (booking.getStatus() != PaymentStatus.PENDING) {
+            throw new BadRequestException("booking is not pending");
+        }
+        if (booking.getAmountTotal().compareTo(BigDecimal.ZERO) != 0) {
+            throw new BadRequestException("only free bookings can be confirmed without payment");
+        }
+        var items = bookingItemRepository.findAllByBookingId(id);
+        if (items.isEmpty()) {
+            throw new BadRequestException("booking has no items");
+        }
+        confirmationService.confirmAllItems(booking, items);
+        booking.setStatus(PaymentStatus.SUCCEEDED);
+        log.info("confirmed free booking id={} campers={}", id, items.size());
         return toResponse(booking, null);
     }
 

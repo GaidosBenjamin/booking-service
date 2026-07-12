@@ -50,4 +50,10 @@ public class BookingController {
     public void cancel(@PathVariable UUID id) {
         bookingService.cancel(id);
     }
+
+    @PostMapping("/{id}/confirm")
+    @PreAuthorize("hasAuthority('bookings:write')")
+    public BookingResponse confirm(@PathVariable UUID id) {
+        return bookingService.confirm(id);
+    }
 }
