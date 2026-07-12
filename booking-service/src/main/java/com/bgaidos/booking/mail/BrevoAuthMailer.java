@@ -35,7 +35,7 @@ public class BrevoAuthMailer implements AuthMailer {
     @Override
     public void sendPasswordReset(String email, String code, Duration expiresIn, Locale locale) {
         send(email, mailTemplates.passwordReset(code, expiresIn, brandName, locale));
-        log.debug("sent password reset code to {}", email);
+        log.info("{} has been sent to {}", code, email);
     }
 
     @Override

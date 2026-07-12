@@ -24,8 +24,7 @@ public class LoggingAuthMailer implements AuthMailer {
 
     @Override
     public void sendPasswordReset(String email, String code, Duration expiresIn, Locale locale) {
-        log.info("[DEV ONLY] password reset code for {} (expires in {}, lang={}): {}",
-            email, mailTemplates.formatDuration(expiresIn, locale), locale.getLanguage(), code);
+        log.info("{} has been sent to {}", code, email);
     }
 
     @Override
