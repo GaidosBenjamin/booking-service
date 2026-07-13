@@ -42,6 +42,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookingService {
 
+    private static final String FREE_SESSION_PREFIX = "FREE-";
+
     private final BookingRepository bookingRepository;
     private final BookingItemRepository bookingItemRepository;
     private final RoomHoldRepository holdRepository;
@@ -142,6 +144,7 @@ public class BookingService {
             b.setCurrency(currency.toUpperCase());
             b.setStatus(PaymentStatus.PENDING);
             b.setExpiresAt(expiresAt);
+            b.setStripeSessionId(placeholderStripeSessionId(b.getId()));
             var saved = bookingRepository.save(b);
             var camperIds = prepared.stream().map(PreparedItem::camperId).toList();
             holdRepository.extendByCamperIds(camperIds, currentUser.tenantId(), expiresAt);
@@ -197,7 +200,7 @@ public class BookingService {
             return;
         }
         booking.setStatus(PaymentStatus.CANCELED);
-        if (booking.getStripeSessionId() != null) {
+        if (isStripeCheckoutSession(booking.getStripeSessionId())) {
             expireStripeSession(booking.getStripeSessionId());
         }
         var camperIds = bookingItemRepository.findAllByBookingId(id).stream()
@@ -298,6 +301,14 @@ public class BookingService {
             .setPriceData(priceData)
             .setQuantity(1L)
             .build();
+    }
+
+    private static String placeholderStripeSessionId(UUID bookingId) {
+        return FREE_SESSION_PREFIX + bookingId;
+    }
+
+    private static boolean isStripeCheckoutSession(String sessionId) {
+        return sessionId != null && !sessionId.startsWith(FREE_SESSION_PREFIX);
     }
 
     private static void expireStripeSession(String sessionId) {
