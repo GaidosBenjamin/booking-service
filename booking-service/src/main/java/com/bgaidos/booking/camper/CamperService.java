@@ -80,7 +80,17 @@ public class CamperService {
         camper.setParentUser(userRepository.getReferenceById(currentUser.userId()));
         camper.setStatus(CamperStatus.NEEDS_BED);
         var saved = camperRepository.save(camper);
-        log.info("created camper id={} user={} tenant={}", saved.getId(), currentUser.userId(), currentUser.tenantId());
+        log.info(
+            "created camper id={} tenant={} parentUser={} firstName={} lastName={} grade={} gender={} dateOfBirth={} status={}",
+            saved.getId(),
+            saved.getTenantId(),
+            currentUser.userId(),
+            saved.getFirstName(),
+            saved.getLastName(),
+            saved.getGrade(),
+            saved.getGender(),
+            saved.getDateOfBirth(),
+            saved.getStatus());
         return toResponseWithStatus(saved);
     }
 
