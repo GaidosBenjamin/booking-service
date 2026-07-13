@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Component
 public class RegistrationGate {
 
-    private final AtomicBoolean enabled = new AtomicBoolean(false);
-    private final AtomicBoolean memberOnly = new AtomicBoolean(true);
+    private final AtomicBoolean enabled = new AtomicBoolean(true);
+    private final AtomicBoolean memberOnly = new AtomicBoolean(false);
 
     public boolean isEnabled() {
         return enabled.get();

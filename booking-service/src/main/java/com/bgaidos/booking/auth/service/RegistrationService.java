@@ -45,7 +45,6 @@ public class RegistrationService {
 
         var email = AuthNormalizers.normalize(request.email());
         var phone = request.phone().replaceAll("\\s+", "");
-        log.info("registering user in tenant={}", organization.getId());
         if (userRepository.existsByTenantIdAndEmailIgnoreCase(organization.getId(), email)) {
             throw new BadRequestException("email already registered for this organization");
         }
@@ -77,7 +76,19 @@ public class RegistrationService {
             attachRoleByName(user, organization.getId(), OnboardingService.ADMIN_ROLE_NAME);
         }
 
-        log.info("registered user={} tenant={} firstUser={}", user.getId(), organization.getId(), isFirstUser);
+        log.info(
+            "registered user id={} tenant={} organizationSlug={} email={} firstName={} lastName={} phone={} preferredLocale={} emailVerified={} firstUser={} isMember={}",
+            user.getId(),
+            user.getTenantId(),
+            organization.getSlug(),
+            user.getEmail(),
+            profile.getFirstName(),
+            profile.getLastName(),
+            profile.getPhone(),
+            profile.getPreferredLocale(),
+            user.isEmailVerified(),
+            isFirstUser,
+            isMember);
     }
 
     private void attachRoleByName(User user, UUID tenantId, String roleName) {
